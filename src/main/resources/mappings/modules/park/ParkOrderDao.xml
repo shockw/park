@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.reache.jeemanage.modules.park.dao.ParkOrderDao">
+    
+	<sql id="parkOrderColumns">
+		a.id AS "id",
+		a.floor AS "floor",
+		a.jiffy_stand AS "jiffyStand",
+		a.person_id AS "personId",
+		a.pay_code AS "payCode",
+		a.path AS "path",
+		a.pay_time AS "payTime",
+		a.cost AS "cost",
+		a.start_time AS "startTime",
+		a.end_time AS "endTime",
+		a.in_pic AS "inPic",
+		a.out_pic AS "outPic",
+		a.status AS "status",
+		a.create_by AS "createBy.id",
+		a.create_date AS "createDate",
+		a.update_by AS "updateBy.id",
+		a.update_date AS "updateDate",
+		a.remarks AS "remarks",
+		a.del_flag AS "delFlag"
+	</sql>
+	
+	<sql id="parkOrderJoins">
+	</sql>
+    
+	<select id="get" resultType="ParkOrder">
+		SELECT 
+			<include refid="parkOrderColumns"/>
+		FROM park_order a
+		<include refid="parkOrderJoins"/>
+		WHERE a.id = #{id}
+	</select>
+	
+	<select id="findList" resultType="ParkOrder">
+		SELECT 
+			<include refid="parkOrderColumns"/>
+		FROM park_order a
+		<include refid="parkOrderJoins"/>
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL}
+			<if test="floor != null and floor != ''">
+				AND a.floor = #{floor}
+			</if>
+			<if test="jiffyStand != null and jiffyStand != ''">
+				AND a.jiffy_stand = #{jiffyStand}
+			</if>
+			<if test="personId != null and personId != ''">
+				AND a.person_id = #{personId}
+			</if>
+			<if test="status != null and status != ''">
+				AND a.status = #{status}
+			</if>
+			<if test="startTime != null and endTime != null and startTime != '' and endTime != ''">
+				AND a.start_time BETWEEN #{startTime} AND #{endTime}
+			</if>
+		</where>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.update_date DESC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<select id="findAllList" resultType="ParkOrder">
+		SELECT 
+			<include refid="parkOrderColumns"/>
+		FROM park_order a
+		<include refid="parkOrderJoins"/>
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL}
+		</where>		
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.update_date DESC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<insert id="insert">
+		INSERT INTO park_order(
+			id,
+			floor,
+			jiffy_stand,
+			person_id,
+			path,
+			in_pic,
+			out_pic,
+			cost,
+			start_time,
+			end_time,
+			pay_time,
+			status,
+			create_by,
+			create_date,
+			update_by,
+			update_date,
+			remarks,
+			del_flag
+		) VALUES (
+			#{id},
+			#{floor},
+			#{jiffyStand},
+			#{personId},
+			#{path},
+			#{inPic},
+			#{outPic},
+			#{cost},
+			#{startTime},
+			#{endTime},
+			#{payTime},
+			#{status},
+			#{createBy.id},
+			#{createDate},
+			#{updateBy.id},
+			#{updateDate},
+			#{remarks},
+			#{delFlag}
+		)
+	</insert>
+	
+	<update id="update">
+		UPDATE park_order SET 	
+			floor = #{floor},
+			jiffy_stand = #{jiffyStand},
+			person_id = #{personId},
+			path = #{path},
+			start_time = #{startTime},
+			end_time = #{endTime},
+			pay_time = #{payTime},
+			cost = #{cost},
+			<if test="inPic != null and inPic != ''">
+				in_pic = #{inPic},
+			</if>
+			<if test="outPic != null and outPic != ''">
+				out_pic = #{outPic},
+			</if>
+			<if test="payCode != null and payCode != ''">
+				pay_code = #{payCode},
+			</if>
+			status = #{status}
+		WHERE id = #{id}
+	</update>
+	
+	<update id="delete">
+		UPDATE park_order SET 
+			del_flag = #{DEL_FLAG_DELETE}
+		WHERE id = #{id}
+	</update>
+	
+</mapper>

@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.reache.jeemanage.modules.park.dao.ParkJiffyStandDao">
+    
+	<sql id="parkJiffyStandColumns">
+		a.id AS "id",
+		a.floor AS "floor",
+		a.jiffy_stand AS "jiffyStand",
+		a.count AS "count",
+		a.inuse_count AS "inuseCount",
+		a.idle_count AS "idleCount",
+		a.create_by AS "createBy.id",
+		a.create_date AS "createDate",
+		a.update_by AS "updateBy.id",
+		a.update_date AS "updateDate",
+		a.remarks AS "remarks",
+		a.del_flag AS "delFlag",
+		a.number AS "number"
+	</sql>
+	
+	<sql id="parkJiffyStandJoins">
+	</sql>
+    
+	<select id="get" resultType="ParkJiffyStand">
+		SELECT 
+			<include refid="parkJiffyStandColumns"/>
+		FROM park_jiffy_stand a
+		<include refid="parkJiffyStandJoins"/>
+		WHERE a.id = #{id}
+	</select>
+	
+	<select id="findList" resultType="ParkJiffyStand">
+		SELECT 
+			<include refid="parkJiffyStandColumns"/>
+		FROM park_jiffy_stand a
+		<include refid="parkJiffyStandJoins"/>
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL}
+			<if test="floor != null and floor != ''">
+				AND a.floor = #{floor}
+			</if>
+			<if test="jiffyStand != null and jiffyStand != ''">
+				AND a.jiffy_stand = #{jiffyStand}
+			</if>
+		</where>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.update_date DESC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<select id="findAllList" resultType="ParkJiffyStand">
+		SELECT 
+			<include refid="parkJiffyStandColumns"/>
+		FROM park_jiffy_stand a
+		<include refid="parkJiffyStandJoins"/>
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL}
+		</where>		
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.update_date DESC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<insert id="insert">
+		INSERT INTO park_jiffy_stand(
+			id,
+			floor,
+			jiffy_stand,
+			count,
+			inuse_count,
+			idle_count,
+			create_by,
+			create_date,
+			update_by,
+			update_date,
+			remarks,
+			del_flag
+		) VALUES (
+			#{id},
+			#{floor},
+			#{jiffyStand},
+			#{count},
+			#{inuseCount},
+			#{idleCount},
+			#{createBy.id},
+			#{createDate},
+			#{updateBy.id},
+			#{updateDate},
+			#{remarks},
+			#{delFlag}
+		)
+	</insert>
+	
+	<update id="update">
+		UPDATE park_jiffy_stand SET 	
+			floor = #{floor},
+			jiffy_stand = #{jiffyStand},
+			count = #{count},
+			inuse_count = #{inuseCount},
+			idle_count = #{idleCount}
+		WHERE id = #{id}
+	</update>
+	
+	<update id="delete">
+		UPDATE park_jiffy_stand SET 
+			del_flag = #{DEL_FLAG_DELETE}
+		WHERE id = #{id}
+	</update>
+	
+</mapper>

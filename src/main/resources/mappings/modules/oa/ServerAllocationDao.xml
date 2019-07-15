@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.reache.jeemanage.modules.oa.dao.ServerAllocationDao">
+    
+	<sql id="serverAllocationColumns">
+		a.id AS "id",
+		a.process_instance_id AS "processInstanceId",
+		a.office_id AS "office.id",
+		a.name AS "name",
+		a.`explain` AS "explain",
+		a.apply_time AS "applyTime",
+		a.expected_time AS "expectedTime",
+		a.create_by AS "createBy.id",
+		a.create_date AS "createDate",
+		a.update_by AS "updateBy.id",
+		a.update_date AS "updateDate",
+		a.remarks AS "remarks",
+		a.del_flag AS "delFlag",
+		o3.name AS "office.name"
+	</sql>
+	
+	<sql id="serverAllocationJoins">
+		LEFT JOIN sys_office o3 ON o3.id = a.office_id
+	</sql>
+    
+	<select id="get" resultType="ServerAllocation">
+		SELECT 
+			<include refid="serverAllocationColumns"/>
+		FROM oa_server_allocation a
+		<include refid="serverAllocationJoins"/>
+		WHERE a.id = #{id}
+	</select>
+	
+	<select id="findList" resultType="ServerAllocation">
+		SELECT 
+			<include refid="serverAllocationColumns"/>
+		FROM oa_server_allocation a
+		<include refid="serverAllocationJoins"/>
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL}
+			<if test="processInstanceId != null and processInstanceId != ''">
+				AND a.process_instance_id = #{processInstanceId}
+			</if>
+			<if test="office != null and office.id != null and office.id != ''">
+				AND a.office_id = #{office.id}
+			</if>
+			<if test="name != null and name != ''">
+				AND a.name LIKE 
+					<if test="dbName == 'oracle'">'%'||#{name}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{name}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{name},'%')</if>
+			</if>
+		</where>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.update_date DESC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<select id="findAllList" resultType="ServerAllocation">
+		SELECT 
+			<include refid="serverAllocationColumns"/>
+		FROM oa_server_allocation a
+		<include refid="serverAllocationJoins"/>
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL}
+		</where>		
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.update_date DESC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<insert id="insert">
+		INSERT INTO oa_server_allocation(
+			id,
+			process_instance_id,
+			office_id,
+			name,
+			`explain`,
+			apply_time,
+			expected_time,
+			create_by,
+			create_date,
+			update_by,
+			update_date,
+			remarks,
+			del_flag
+		) VALUES (
+			#{id},
+			#{processInstanceId},
+			#{office.id},
+			#{name},
+			#{explain},
+			#{applyTime},
+			#{expectedTime},
+			#{createBy.id},
+			#{createDate},
+			#{updateBy.id},
+			#{updateDate},
+			#{remarks},
+			#{delFlag}
+		)
+	</insert>
+	
+	<update id="update">
+		UPDATE oa_server_allocation SET 	
+			process_instance_id = #{processInstanceId},
+			office_id = #{office.id},
+			name = #{name},
+			`explain` = #{explain},
+			apply_time = #{applyTime},
+			expected_time = #{expectedTime},
+			update_by = #{updateBy.id},
+			update_date = #{updateDate},
+			remarks = #{remarks}
+		WHERE id = #{id}
+	</update>
+	
+	<update id="delete">
+		UPDATE oa_server_allocation SET 
+			del_flag = #{DEL_FLAG_DELETE}
+		WHERE id = #{id}
+	</update>
+	
+</mapper>

@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.reache.jeemanage.modules.oa.dao.OaLoanDao">
+    
+	<sql id="oaLoanColumns">
+		a.id AS "id",
+		a.proc_ins_id AS "procInsId",
+		a.user_id AS "user.id",
+		a.office_id AS "office.id",
+		a.summary AS "summary",
+		a.fee AS "fee",
+		a.reason AS "reason",
+		a.actbank AS "actbank",
+		a.actno AS "actno",
+		a.actname AS "actname",
+		a.financial_text AS "financialText",
+		a.lead_text AS "leadText",
+		a.main_lead_text AS "mainLeadText",
+		a.teller AS "teller",
+		a.create_by AS "createBy.id",
+		a.create_date AS "createDate",
+		a.update_by AS "updateBy.id",
+		a.update_date AS "updateDate",
+		a.remarks AS "remarks",
+		a.del_flag AS "delFlag",
+		u3.name AS "user.name",
+		o4.name AS "office.name"
+	</sql>
+	
+	<sql id="oaLoanJoins">
+		LEFT JOIN sys_user u3 ON u3.id = a.user_id
+		LEFT JOIN sys_office o4 ON o4.id = a.office_id
+	</sql>
+    
+	<select id="get" resultType="OaLoan">
+		SELECT 
+			<include refid="oaLoanColumns"/>
+		FROM oa_loan a
+		<include refid="oaLoanJoins"/>
+		WHERE a.id = #{id}
+	</select>
+	
+	<select id="findList" resultType="OaLoan">
+		SELECT 
+			<include refid="oaLoanColumns"/>
+		FROM oa_loan a
+		<include refid="oaLoanJoins"/>
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL}
+			<if test="procInsId != null and procInsId != ''">
+				AND a.proc_ins_id = #{procInsId}
+			</if>
+			<if test="createDate != null and createDate != ''">
+				AND a.create_date = #{createDate}
+			</if>
+		</where>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.update_date DESC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<select id="findAllList" resultType="OaLoan">
+		SELECT 
+			<include refid="oaLoanColumns"/>
+		FROM oa_loan a
+		<include refid="oaLoanJoins"/>
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL}
+		</where>		
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.update_date DESC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<insert id="insert">
+		INSERT INTO oa_loan(
+			id,
+			proc_ins_id,
+			user_id,
+			office_id,
+			summary,
+			fee,
+			reason,
+			actbank,
+			actno,
+			actname,
+			financial_text,
+			lead_text,
+			main_lead_text,
+			teller,
+			create_by,
+			create_date,
+			update_by,
+			update_date,
+			remarks,
+			del_flag
+		) VALUES (
+			#{id},
+			#{procInsId},
+			#{user.id},
+			#{office.id},
+			#{summary},
+			#{fee},
+			#{reason},
+			#{actbank},
+			#{actno},
+			#{actname},
+			#{financialText},
+			#{leadText},
+			#{mainLeadText},
+			#{teller},
+			#{createBy.id},
+			#{createDate},
+			#{updateBy.id},
+			#{updateDate},
+			#{remarks},
+			#{delFlag}
+		)
+	</insert>
+	
+	<update id="update">
+		UPDATE oa_loan SET 	
+			proc_ins_id = #{procInsId},
+			user_id = #{user.id},
+			office_id = #{office.id},
+			summary = #{summary},
+			fee = #{fee},
+			reason = #{reason},
+			actbank = #{actbank},
+			actno = #{actno},
+			actname = #{actname},
+			financial_text = #{financialText},
+			lead_text = #{leadText},
+			main_lead_text = #{mainLeadText},
+			teller = #{teller},
+			update_by = #{updateBy.id},
+			update_date = #{updateDate},
+			remarks = #{remarks}
+		WHERE id = #{id}
+	</update>
+	<update id="updateInsId">
+		UPDATE oa_loan SET 
+			proc_ins_id = #{procInsId},
+			update_by = #{updateBy.id}, 
+			update_date = #{updateDate}
+		WHERE id = #{id}
+	</update>
+	
+	<update id="updateFinancialText">
+		UPDATE oa_loan SET 
+			financial_text = #{financialText},
+			update_by = #{updateBy.id}, 
+			update_date = #{updateDate}
+		WHERE id = #{id}
+	</update>
+	
+	<update id="updateLeadText">
+		UPDATE oa_loan SET 
+			lead_text = #{leadText},
+			update_by = #{updateBy.id}, 
+			update_date = #{updateDate}
+		WHERE id = #{id}
+	</update>
+	
+	<update id="updateMainLeadText">
+		UPDATE oa_loan SET 
+			main_lead_text = #{mainLeadText},
+			update_by = #{updateBy.id}, 
+			update_date = #{updateDate}
+		WHERE id = #{id}
+	</update>
+	
+	<update id="updateTeller">
+		UPDATE oa_loan SET 
+			teller = #{teller},
+			update_by = #{updateBy.id}, 
+			update_date = #{updateDate}
+		WHERE id = #{id}
+	</update>
+	
+	
+	<update id="delete">
+		UPDATE oa_loan SET 
+			del_flag = #{DEL_FLAG_DELETE}
+		WHERE id = #{id}
+	</update>
+	
+</mapper>
