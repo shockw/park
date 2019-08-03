@@ -41,26 +41,38 @@
 		<where>
 			a.del_flag = #{DEL_FLAG_NORMAL}
 			<if test="intfName != null and intfName != ''">
-				AND a.intf_name = #{intfName}
-			</if>
+                AND a.intf_name LIKE 
+                    <if test="dbName == 'oracle'">'%'||#{intfName}||'%'</if>
+                    <if test="dbName == 'mssql'">'%'+#{intfName}+'%'</if>
+                    <if test="dbName == 'mysql'">concat('%',#{intfName},'%')</if>
+            </if>
 			<if test="callMethod != null and callMethod != ''">
 				AND a.call_method = #{callMethod}
 			</if>
 			<if test="orderId != null and orderId != ''">
-				AND a.order_id = #{orderId}
-			</if>
-			<if test="caller != null and caller != ''">
-				AND a.caller = #{caller}
-			</if>
-			<if test="callee != null and callee != ''">
-				AND a.callee = #{callee}
-			</if>
+                AND a.order_id LIKE 
+                    <if test="dbName == 'oracle'">'%'||#{orderId}||'%'</if>
+                    <if test="dbName == 'mssql'">'%'+#{orderId}+'%'</if>
+                    <if test="dbName == 'mysql'">concat('%',#{orderId},'%')</if>
+            </if>
+            <if test="caller != null and caller != ''">
+                AND a.caller LIKE 
+                    <if test="dbName == 'oracle'">'%'||#{caller}||'%'</if>
+                    <if test="dbName == 'mssql'">'%'+#{caller}+'%'</if>
+                    <if test="dbName == 'mysql'">concat('%',#{caller},'%')</if>
+            </if>
+            <if test="callee != null and callee != ''">
+                AND a.callee LIKE 
+                    <if test="dbName == 'oracle'">'%'||#{callee}||'%'</if>
+                    <if test="dbName == 'mssql'">'%'+#{callee}+'%'</if>
+                    <if test="dbName == 'mysql'">concat('%',#{callee},'%')</if>
+            </if>
 			<if test="beginReqTime != null and endReqTime != null and beginReqTime != '' and endReqTime != ''">
-				AND a.req_time BETWEEN #{beginReqTime} AND #{endReqTime}
+				AND ((a.req_time BETWEEN #{beginReqTime} AND #{endReqTime}) or (a.rsp_time BETWEEN #{beginReqTime} AND #{endReqTime}))
 			</if>
-			<if test="beginRspTime != null and endRspTime != null and beginRspTime != '' and endRspTime != ''">
+			<!-- <if test="beginRspTime != null and endRspTime != null and beginRspTime != '' and endRspTime != ''">
 				AND a.rsp_time BETWEEN #{beginRspTime} AND #{endRspTime}
-			</if>
+			</if> -->
 			<if test="callStatus != null and callStatus != ''">
 				AND a.call_status = #{callStatus}
 			</if>
