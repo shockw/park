@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.reache.jeemanage.modules.park.dao.ParkBizoptLogDao">
+    
+	<sql id="parkBizoptLogColumns">
+		a.id AS "id",
+		a.bizopt_name AS "bizoptName",
+		a.order_id AS "orderId",
+		a.sys_user_id AS "sysUserId",
+		a.sys_user_login_name AS "sysUserLoginName",
+		a.bizopt_time AS "bizoptTime",
+		a.bizopt_content AS "bizoptContent",
+		a.create_by AS "createBy.id",
+		a.create_date AS "createDate",
+		a.update_by AS "updateBy.id",
+		a.update_date AS "updateDate",
+		a.remarks AS "remarks",
+		a.del_flag AS "delFlag"
+	</sql>
+	
+	<sql id="parkBizoptLogJoins">
+	</sql>
+    
+	<select id="get" resultType="ParkBizoptLog">
+		SELECT 
+			<include refid="parkBizoptLogColumns"/>
+		FROM park_bizopt_log a
+		<include refid="parkBizoptLogJoins"/>
+		WHERE a.id = #{id}
+	</select>
+	
+	<select id="findList" resultType="ParkBizoptLog">
+		SELECT 
+			<include refid="parkBizoptLogColumns"/>
+		FROM park_bizopt_log a
+		<include refid="parkBizoptLogJoins"/>
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL}
+			<if test="bizoptName != null and bizoptName != ''">
+				AND a.bizopt_name LIKE 
+					<if test="dbName == 'oracle'">'%'||#{bizoptName}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{bizoptName}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{bizoptName},'%')</if>
+			</if>
+			<if test="orderId != null and orderId != ''">
+                AND a.order_id LIKE 
+                    <if test="dbName == 'oracle'">'%'||#{orderId}||'%'</if>
+                    <if test="dbName == 'mssql'">'%'+#{orderId}+'%'</if>
+                    <if test="dbName == 'mysql'">concat('%',#{orderId},'%')</if>
+            </if>
+			<if test="sysUserId != null and sysUserId != ''">
+				AND a.sys_user_id LIKE 
+					<if test="dbName == 'oracle'">'%'||#{sysUserId}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{sysUserId}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{sysUserId},'%')</if>
+			</if>
+			<if test="sysUserLoginName != null and sysUserLoginName != ''">
+				AND a.sys_user_login_name LIKE 
+					<if test="dbName == 'oracle'">'%'||#{sysUserLoginName}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{sysUserLoginName}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{sysUserLoginName},'%')</if>
+			</if>
+			<if test="beginBizoptTime != null and endBizoptTime != null and beginBizoptTime != '' and endBizoptTime != ''">
+				AND a.bizopt_time BETWEEN #{beginBizoptTime} AND #{endBizoptTime}
+			</if>
+			<if test="bizoptContent != null and bizoptContent != ''">
+				AND a.bizopt_content LIKE 
+					<if test="dbName == 'oracle'">'%'||#{bizoptContent}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{bizoptContent}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{bizoptContent},'%')</if>
+			</if>
+		</where>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.update_date DESC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<select id="findAllList" resultType="ParkBizoptLog">
+		SELECT 
+			<include refid="parkBizoptLogColumns"/>
+		FROM park_bizopt_log a
+		<include refid="parkBizoptLogJoins"/>
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL}
+		</where>		
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.update_date DESC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<insert id="insert">
+		INSERT INTO park_bizopt_log(
+			id,
+			bizopt_name,
+			order_id,
+			sys_user_id,
+			sys_user_login_name,
+			bizopt_time,
+			bizopt_content,
+			create_by,
+			create_date,
+			update_by,
+			update_date,
+			remarks,
+			del_flag
+		) VALUES (
+			#{id},
+			#{bizoptName},
+			#{orderId},
+			#{sysUserId},
+			#{sysUserLoginName},
+			#{bizoptTime},
+			#{bizoptContent},
+			#{createBy.id},
+			#{createDate},
+			#{updateBy.id},
+			#{updateDate},
+			#{remarks},
+			#{delFlag}
+		)
+	</insert>
+	
+	<update id="update">
+		UPDATE park_bizopt_log SET 	
+			bizopt_name = #{bizoptName},
+			order_id = #{orderId}
+			sys_user_id = #{sysUserId},
+			sys_user_login_name = #{sysUserLoginName},
+			bizopt_time = #{bizoptTime},
+			bizopt_content = #{bizoptContent},
+			update_by = #{updateBy.id},
+			update_date = #{updateDate},
+			remarks = #{remarks}
+		WHERE id = #{id}
+	</update>
+	
+	<update id="delete">
+		UPDATE park_bizopt_log SET 
+			del_flag = #{DEL_FLAG_DELETE}
+		WHERE id = #{id}
+	</update>
+	
+</mapper>
