@@ -22,6 +22,13 @@
 					}
 				}
 			});
+			
+			placeholder = '请求消息应包括请求URL、请求Header、请求报文体';
+            $("#reqMsg").attr('placeholder', placeholder);
+            placeholder = '包括：软件、入门门禁、出门门禁、车架';
+            $("#caller").attr('placeholder', placeholder);
+            placeholder = '包括：软件、入门门禁、出门门禁、车架';
+            $("#callee").attr('placeholder', placeholder);
 		});
 	</script>
 </head>
@@ -45,7 +52,7 @@
 			<div class="controls">
 				<form:select path="callMethod" class="input-xlarge required">
 					<form:option value="" label=""/>
-					<form:options items="${fns:getDictList('')}" itemLabel="label" itemValue="value" htmlEscape="false"/>
+					<form:options items="${fns:getDictList('park_intf_call_method')}" itemLabel="label" itemValue="value" htmlEscape="false"/>
 				</form:select>
 				<span class="help-inline"><font color="red">*</font> </span>
 			</div>
@@ -85,32 +92,32 @@
 			</div>
 		</div>
 		<div class="control-group">
-			<label class="control-label">请求消息：</label>
-			<div class="controls">
-				<form:input path="reqMsg" htmlEscape="false" class="input-xlarge "/>
-			</div>
-		</div>
-		<div class="control-group">
-			<label class="control-label">响应消息：</label>
-			<div class="controls">
-				<form:input path="rspMsg" htmlEscape="false" class="input-xlarge "/>
-			</div>
-		</div>
-		<div class="control-group">
 			<label class="control-label">调用状态：</label>
 			<div class="controls">
 				<form:select path="callStatus" class="input-xlarge ">
 					<form:option value="" label=""/>
-					<form:options items="${fns:getDictList('')}" itemLabel="label" itemValue="value" htmlEscape="false"/>
+					<form:options items="${fns:getDictList('park_intf_call_status')}" itemLabel="label" itemValue="value" htmlEscape="false"/>
 				</form:select>
 			</div>
 		</div>
 		<div class="control-group">
+            <label class="control-label">请求消息：</label>
+            <div class="controls">
+                <form:textarea path="reqMsg" htmlEscape="false" rows="5" class="input-xxlarge required" />
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label">响应消息：</label>
+            <div class="controls">
+                <form:textarea path="rspMsg" htmlEscape="false" rows="5" class="input-xxlarge required" />
+            </div>
+        </div>
+		<%-- <div class="control-group">
 			<label class="control-label">备注：</label>
 			<div class="controls">
 				<form:textarea path="remarks" htmlEscape="false" rows="4" maxlength="255" class="input-xxlarge "/>
 			</div>
-		</div>
+		</div> --%>
 		<div class="form-actions">
 			<shiro:hasPermission name="park:parkIntfLog:edit"><input id="btnSubmit" class="btn btn-primary" type="submit" value="保 存"/>&nbsp;</shiro:hasPermission>
 			<input id="btnCancel" class="btn" type="button" value="返 回" onclick="history.go(-1)"/>

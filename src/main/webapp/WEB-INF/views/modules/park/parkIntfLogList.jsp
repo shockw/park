@@ -19,7 +19,7 @@
 <body>
 	<ul class="nav nav-tabs">
 		<li class="active"><a href="${ctx}/park/parkIntfLog/">接口日志列表</a></li>
-		<%-- <shiro:hasPermission name="park:parkIntfLog:edit"><li><a href="${ctx}/park/parkIntfLog/form">接口日志添加</a></li></shiro:hasPermission> --%>
+		<shiro:hasPermission name="park:parkIntfLog:edit"><li><a href="${ctx}/park/parkIntfLog/form">接口日志模拟添加</a></li></shiro:hasPermission> 
 	</ul>
 	<form:form id="searchForm" modelAttribute="parkIntfLog" action="${ctx}/park/parkIntfLog/" method="post" class="breadcrumb form-search">
 		<input id="pageNo" name="pageNo" type="hidden" value="${page.pageNo}"/>
