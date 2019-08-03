@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.reache.jeemanage.modules.park.dao.ParkIntfLogDao">
+    
+	<sql id="parkIntfLogColumns">
+		a.id AS "id",
+		a.intf_name AS "intfName",
+		a.call_method AS "callMethod",
+		a.order_id AS "orderId",
+		a.caller AS "caller",
+		a.callee AS "callee",
+		a.req_time AS "reqTime",
+		a.rsp_time AS "rspTime",
+		a.req_msg AS "reqMsg",
+		a.rsp_msg AS "rspMsg",
+		a.call_status AS "callStatus",
+		a.create_by AS "createBy.id",
+		a.create_date AS "createDate",
+		a.update_by AS "updateBy.id",
+		a.update_date AS "updateDate",
+		a.remarks AS "remarks",
+		a.del_flag AS "delFlag"
+	</sql>
+	
+	<sql id="parkIntfLogJoins">
+	</sql>
+    
+	<select id="get" resultType="ParkIntfLog">
+		SELECT 
+			<include refid="parkIntfLogColumns"/>
+		FROM park_intf_log a
+		<include refid="parkIntfLogJoins"/>
+		WHERE a.id = #{id}
+	</select>
+	
+	<select id="findList" resultType="ParkIntfLog">
+		SELECT 
+			<include refid="parkIntfLogColumns"/>
+		FROM park_intf_log a
+		<include refid="parkIntfLogJoins"/>
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL}
+			<if test="intfName != null and intfName != ''">
+				AND a.intf_name = #{intfName}
+			</if>
+			<if test="callMethod != null and callMethod != ''">
+				AND a.call_method = #{callMethod}
+			</if>
+			<if test="orderId != null and orderId != ''">
+				AND a.order_id = #{orderId}
+			</if>
+			<if test="caller != null and caller != ''">
+				AND a.caller = #{caller}
+			</if>
+			<if test="callee != null and callee != ''">
+				AND a.callee = #{callee}
+			</if>
+			<if test="beginReqTime != null and endReqTime != null and beginReqTime != '' and endReqTime != ''">
+				AND a.req_time BETWEEN #{beginReqTime} AND #{endReqTime}
+			</if>
+			<if test="beginRspTime != null and endRspTime != null and beginRspTime != '' and endRspTime != ''">
+				AND a.rsp_time BETWEEN #{beginRspTime} AND #{endRspTime}
+			</if>
+			<if test="callStatus != null and callStatus != ''">
+				AND a.call_status = #{callStatus}
+			</if>
+		</where>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.update_date DESC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<select id="findAllList" resultType="ParkIntfLog">
+		SELECT 
+			<include refid="parkIntfLogColumns"/>
+		FROM park_intf_log a
+		<include refid="parkIntfLogJoins"/>
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL}
+		</where>		
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.update_date DESC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<insert id="insert">
+		INSERT INTO park_intf_log(
+			id,
+			intf_name,
+			call_method,
+			order_id,
+			caller,
+			callee,
+			req_time,
+			rsp_time,
+			req_msg,
+			rsp_msg,
+			call_status,
+			create_by,
+			create_date,
+			update_by,
+			update_date,
+			remarks,
+			del_flag
+		) VALUES (
+			#{id},
+			#{intfName},
+			#{callMethod},
+			#{orderId},
+			#{caller},
+			#{callee},
+			#{reqTime},
+			#{rspTime},
+			#{reqMsg},
+			#{rspMsg},
+			#{callStatus},
+			#{createBy.id},
+			#{createDate},
+			#{updateBy.id},
+			#{updateDate},
+			#{remarks},
+			#{delFlag}
+		)
+	</insert>
+	
+	<update id="update">
+		UPDATE park_intf_log SET 	
+			intf_name = #{intfName},
+			call_method = #{callMethod},
+			order_id = #{orderId},
+			caller = #{caller},
+			callee = #{callee},
+			req_time = #{reqTime},
+			rsp_time = #{rspTime},
+			req_msg = #{reqMsg},
+			rsp_msg = #{rspMsg},
+			call_status = #{callStatus},
+			update_by = #{updateBy.id},
+			update_date = #{updateDate},
+			remarks = #{remarks}
+		WHERE id = #{id}
+	</update>
+	
+	<update id="delete">
+		UPDATE park_intf_log SET 
+			del_flag = #{DEL_FLAG_DELETE}
+		WHERE id = #{id}
+	</update>
+	
+</mapper>
