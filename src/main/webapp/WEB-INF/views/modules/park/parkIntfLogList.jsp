@@ -87,7 +87,7 @@
 		<tbody>
 		<c:forEach items="${page.list}" var="parkIntfLog">
 			<tr>
-				<td><a href="${ctx}/park/parkIntfLog/form?id=${parkIntfLog.id}">
+				<td><a href="${ctx}/park/parkIntfLog/formreadonly?id=${parkIntfLog.id}">
 					${parkIntfLog.intfName}
 				</a></td>
 				<td>
@@ -111,9 +111,9 @@
 				<td>
 					${fns:getDictLabel(parkIntfLog.callStatus, 'park_intf_call_status', '')}
 				</td>
-				<%-- <shiro:hasPermission name="park:parkIntfLog:edit"> --%><td>
-    				
-				</td><%-- </shiro:hasPermission> --%>
+				<shiro:hasPermission name="park:parkIntfLog:edit"><td>
+    				<a href="${ctx}/park/parkIntfLog/formreadonly?id=${parkIntfLog.id}">查看</a>
+				</td></shiro:hasPermission>
 			</tr>
 		</c:forEach>
 		</tbody>
