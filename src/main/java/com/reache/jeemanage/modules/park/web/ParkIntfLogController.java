@@ -60,6 +60,13 @@ public class ParkIntfLogController extends BaseController {
 		model.addAttribute("parkIntfLog", parkIntfLog);
 		return "modules/park/parkIntfLogForm";
 	}
+	
+	@RequiresPermissions("park:parkIntfLog:view")
+	@RequestMapping(value = "formreadonly")
+	public String formReadonly(ParkIntfLog parkIntfLog, Model model) {
+		model.addAttribute("parkIntfLog", parkIntfLog);
+		return "modules/park/parkIntfLogFormReadonly";
+	}
 
 	@RequiresPermissions("park:parkIntfLog:edit")
 	@RequestMapping(value = "save")
