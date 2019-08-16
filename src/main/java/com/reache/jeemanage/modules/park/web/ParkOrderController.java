@@ -36,6 +36,7 @@ import com.reache.jeemanage.common.utils.IdGen;
 import com.reache.jeemanage.common.utils.StringUtils;
 import com.reache.jeemanage.common.web.BaseController;
 import com.reache.jeemanage.modules.park.Constant;
+import com.reache.jeemanage.modules.park.TokenManager;
 import com.reache.jeemanage.modules.park.component.ParkJiffyStandOperation;
 import com.reache.jeemanage.modules.park.entity.ParkJiffyStand;
 import com.reache.jeemanage.modules.park.entity.ParkOrder;
@@ -82,71 +83,6 @@ public class ParkOrderController extends BaseController {
 	public String list(HttpServletRequest request, HttpServletResponse response, Model model) {
 		return "modules/park/index";
 	}
-	
-	/**
-	 * 申请停车，形成订单，触发人脸注册
-	 * @param request
-	 * @param response
-	 * @param model
-	 * @param redirectAttributes
-	 * @return
-	 */
-	@RequestMapping(value = "/park")
-	public String park(HttpServletRequest request, HttpServletResponse response, Model model,
-				RedirectAttributes redirectAttributes) {
-			try {
-				// 占用车位
-				ParkJiffyStand pjs = parkJiffyStandService.occupy();
-				// 如果占用车位成功，则开始人脸注册
-				if (pjs != null) {
-					String personId = IdGen.uuid();
-					//操作车架
-					ParkJiffyStandOperation.operation("in", personId, Integer.parseInt(pjs.getFloor()));
-					
-					// 人员注册,需要注册两次
-					CloseableHttpClient httpclient = HttpClients.createDefault();
-					HttpPost httpPost = new HttpPost(Constant.IN_URL + "/person/create");
-					httpPost.setHeader("Content-Type", "application/x-www-form-urlencoded");
-					List<NameValuePair> nvps = new ArrayList<NameValuePair>();
-					nvps.add(new BasicNameValuePair("pass", "88888888"));
-					String personInfo = "{\"id\":\"" + personId + "\",\"idcardNum\":\"\",\"name\":\"" + personId + "\"}";
-					nvps.add(new BasicNameValuePair("person", personInfo));
-					httpPost.setEntity(new UrlEncodedFormEntity(nvps));
-					httpclient.execute(httpPost);
-
-					HttpPost httpPostO = new HttpPost(Constant.OUT_URL + "/person/create");
-					httpPostO.setHeader("Content-Type", "application/x-www-form-urlencoded");
-					List<NameValuePair> nvpsO = new ArrayList<NameValuePair>();
-					nvpsO.add(new BasicNameValuePair("pass", "88888888"));
-					nvpsO.add(new BasicNameValuePair("person", personInfo));
-					httpPostO.setEntity(new UrlEncodedFormEntity(nvpsO));
-					httpclient.execute(httpPostO);
-					// 照片注册,注册一次，另外一个需要照片同步
-					
-					HttpPost httpPost1 = new HttpPost(Constant.IN_URL + "/face/takeImg");
-					httpPost1.setHeader("Content-Type", "application/x-www-form-urlencoded");
-					List<NameValuePair> nvps1 = new ArrayList<NameValuePair>();
-					nvps1.add(new BasicNameValuePair("pass", "88888888"));
-					nvps1.add(new BasicNameValuePair("personId", personId));
-					httpPost1.setEntity(new UrlEncodedFormEntity(nvps1));
-					httpclient.execute(httpPost1);
-
-					// 形成订单
-					ParkOrder po = new ParkOrder();
-					po.setFloor(pjs.getFloor());
-					po.setPersonId(personId);
-					po.setJiffyStand(pjs.getJiffyStand());
-					po.setStartTime(new Date());
-					po.setStatus("0");
-					parkOrderService.save(po);
-				}
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-			redirectAttributes.addFlashAttribute("message", "正在申请停车,请对准摄像头进行拍照!");
-			return "redirect:" + Global.getAdminPath() + "/park/parkOrder/index?repage";
-
-		}
 	
 	@RequiresPermissions("park:parkOrder:view")
 	@RequestMapping(value = { "list", "" })
@@ -235,7 +171,6 @@ public class ParkOrderController extends BaseController {
 		
 		try {
 			// 开门
-			Thread.sleep(60000l);
 				CloseableHttpClient httpclient = HttpClients.createDefault();
 				HttpPost httpPost = new HttpPost(Constant.OUT_URL + "/device/openDoorControl");
 				httpPost.setHeader("Content-Type", "application/x-www-form-urlencoded");
@@ -270,6 +205,30 @@ public class ParkOrderController extends BaseController {
 		parkOrderService.delete(parkOrder);
 		addMessage(redirectAttributes, "删除停车订单成功");
 		return "redirect:" + Global.getAdminPath() + "/park/parkOrder/list?repage";
+	}
+	
+	@RequiresPermissions("park:parkOrder:edit")
+	@RequestMapping(value = "tokenManager")
+	public String tokenManager( Model model) {
+		String statusDesc = TokenManager.getStatus()==true?"可用":"不可用";
+		model.addAttribute("statusDesc", statusDesc);
+		return "modules/park/tokenManager";
+	}
+	
+	@RequiresPermissions("park:parkOrder:edit")
+	@RequestMapping(value = "tokenOccupy")
+	public String tokenOccupy(RedirectAttributes redirectAttributes) {
+		TokenManager.occupy();
+		addMessage(redirectAttributes, "令牌占用成功");
+		return "redirect:" + Global.getAdminPath() + "/park/parkOrder/tokenManager?repage";
+	}
+	
+	@RequiresPermissions("park:parkOrder:edit")
+	@RequestMapping(value = "tokenRelease")
+	public String tokenRelease(RedirectAttributes redirectAttributes) {
+		TokenManager.release();
+		addMessage(redirectAttributes, "令牌释放成功");
+		return "redirect:" + Global.getAdminPath() + "/park/parkOrder/tokenManager?repage";
 	}
 
 }

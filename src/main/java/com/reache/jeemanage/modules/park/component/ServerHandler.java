@@ -1,5 +1,12 @@
 package com.reache.jeemanage.modules.park.component;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.reache.jeemanage.common.mapper.JsonMapper;
+import com.reache.jeemanage.modules.park.api.ParkAPI;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -69,9 +76,19 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
         String body = new String(req, "UTF-8");
         result = body;
         System.out.println("接收客户端数据:" + body);
-        if(body.contains("200")&&ParkJiffyStandOperation.latch!=null) {
-        	ParkJiffyStandOperation.latch.countDown();
+        //出入库并行锁释放
+        if(body.contains("200")&&body.contains("feedback")) {
+        	ObjectMapper objectMapper = new ObjectMapper();
+        	Map<String,String> map = objectMapper.readValue(body,HashMap.class);
+        	String transId = map.get("transId");
+        	CountDownLatch latch =ParkJiffyStandOperation.latchs.get(transId);
+        	latch.countDown();
         	System.out.println("已经成功接受到车架操作完毕信息！");
+        }else if(body.contains("barrier")) {
+        	ObjectMapper objectMapper = new ObjectMapper();
+        	Map<String,String> map = objectMapper.readValue(body,HashMap.class);
+        	String state = map.get("state");
+        	ParkAPI.barrierFlags.add(state);
         }
 //        ByteBuf pingMessage = Unpooled.buffer();
 //        pingMessage.writeBytes(req);

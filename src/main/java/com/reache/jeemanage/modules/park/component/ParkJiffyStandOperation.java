@@ -1,8 +1,12 @@
 package com.reache.jeemanage.modules.park.component;
 
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+
+import com.reache.jeemanage.modules.park.api.ParkAPI;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -10,7 +14,13 @@ import io.netty.channel.Channel;
 
 public class ParkJiffyStandOperation {
 	public static final Object lock = new Object();
-	public static CountDownLatch latch ;
+	/**
+	 * 操作车架的同步锁
+	 */
+	public static Map<String,CountDownLatch> latchs = new HashMap<String,CountDownLatch>();
+	
+	
+	
 	/**
 	 * 操作车架
 	 * @param type
@@ -21,23 +31,38 @@ public class ParkJiffyStandOperation {
 		synchronized (lock) {
 			String req = "{\"cmd\":\"req\",\"type\":\"" + type + "\",\"transId\":\"" + userId +"\",\"userId\":\"" + userId + "\",\"floor\":" + floor
 					+ "}";
-			System.out.println("已连接车架："+NettyConfig.group);
+			System.out.println("车架连接信息："+NettyConfig.group);
 			Iterator<Channel> iterator = NettyConfig.group.iterator();
 			while (iterator.hasNext()) {
 				try {
 					ByteBuf pingMessage = Unpooled.buffer();
 					pingMessage.writeBytes(req.getBytes());
 					Channel channel = iterator.next();
-					latch = new CountDownLatch(1);
+					CountDownLatch latch = new CountDownLatch(1);
 					channel.writeAndFlush(pingMessage);
-					latch.await(60,TimeUnit.SECONDS);
-					System.out.println("车架已经操作完毕，请进入车架！");
+					latchs.put(userId, latch);
+					System.out.println("向车架发送出入库操作成功！");
 				} catch (Exception e) {
 					e.printStackTrace();
-					System.out.println("车架操作超时！");
-					latch.countDown();
 				}
 			}
 		}
 	}
+	public static void barrierQuery(String transId) {
+		String req = "{\"cmd\":\"req\",\"type\":\"barrier\",\"transId\":\"" + transId +"\"}";
+		System.out.println("车架连接信息："+NettyConfig.group);
+		Iterator<Channel> iterator = NettyConfig.group.iterator();
+		while (iterator.hasNext()) {
+			try {
+				ByteBuf pingMessage = Unpooled.buffer();
+				pingMessage.writeBytes(req.getBytes());
+				Channel channel = iterator.next();
+				channel.writeAndFlush(pingMessage);
+				System.out.println("向车架发送障碍物查义命令成功！");
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+	} 
+	
 }

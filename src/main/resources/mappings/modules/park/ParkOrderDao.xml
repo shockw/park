@@ -147,7 +147,9 @@
 			<if test="payCode != null and payCode != ''">
 				pay_code = #{payCode},
 			</if>
-			status = #{status}
+			status = #{status},
+			update_by = #{updateBy.id}, 
+			update_date = #{updateDate}
 		WHERE id = #{id}
 	</update>
 	

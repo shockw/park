@@ -29,6 +29,8 @@ public class ParkJiffyStandService extends CrudService<ParkJiffyStandDao, ParkJi
 	@Autowired
 	protected JdbcTemplate jdbcTemplate;
 
+	private static final Object lock = new Object();
+
 	public ParkJiffyStand get(String id) {
 		return super.get(id);
 	}
@@ -51,26 +53,60 @@ public class ParkJiffyStandService extends CrudService<ParkJiffyStandDao, ParkJi
 		super.delete(parkJiffyStand);
 	}
 
+	/**
+	 * 车位占用
+	 * 
+	 * @return
+	 */
 	@Transactional(readOnly = false)
 	public ParkJiffyStand occupy() {
-		ParkJiffyStand pjs  = null;
-		String sql = "select id,inuse_count,idle_count,floor,jiffy_stand from park_jiffy_stand where idle_count>0 and inuse_count>=0 order by floor";
-		List<Map<String, Object>> lists = jdbcTemplate.queryForList(sql);
-		if(lists.size()>0) {
-			String id = (String) lists.get(0).get("id");
-			String floor = (String) lists.get(0).get("floor");
-			String jiffyStand = (String) lists.get(0).get("jiffy_stand");
-			int inuseCount = (Integer) lists.get(0).get("inuse_count");
-			int idleCount = (Integer) lists.get(0).get("idle_count");
-			inuseCount++;
-			idleCount--;
-			String updateSql = "update park_jiffy_stand set inuse_count = "+inuseCount+ ", idle_count = "+idleCount+" where id = \""
-					+ id + "\"";
-			jdbcTemplate.update(updateSql);
-			pjs = new ParkJiffyStand();
-			pjs.setFloor(floor);
-			pjs.setJiffyStand(jiffyStand);
-			pjs.setId(id);
+		ParkJiffyStand pjs = null;
+		synchronized (lock) {
+			// 查找最新的存取车订单层数
+			String sql1 = "select floor from park_order order by update_date desc";
+			List<Map<String, Object>> lists1 = jdbcTemplate.queryForList(sql1);
+			if (lists1.size() > 0) {
+				// 获取最新存取车订单层数
+				String new_floor = (String) lists1.get(0).get("floor");
+				String sql = "select id,inuse_count,idle_count,floor,abs(floor-" + new_floor
+						+ ") as distance,jiffy_stand from park_jiffy_stand where idle_count>0  order by distance";
+				List<Map<String, Object>> lists = jdbcTemplate.queryForList(sql);
+				if (lists.size() > 0) {
+					String id = (String) lists.get(0).get("id");
+					String floor = (String) lists.get(0).get("floor");
+					String jiffyStand = (String) lists.get(0).get("jiffy_stand");
+					int inuseCount = (Integer) lists.get(0).get("inuse_count");
+					int idleCount = (Integer) lists.get(0).get("idle_count");
+					inuseCount++;
+					idleCount--;
+					String updateSql = "update park_jiffy_stand set inuse_count = " + inuseCount + ", idle_count = "
+							+ idleCount + " where id = \"" + id + "\"";
+					jdbcTemplate.update(updateSql);
+					pjs = new ParkJiffyStand();
+					pjs.setFloor(floor);
+					pjs.setJiffyStand(jiffyStand);
+					pjs.setId(id);
+				}
+			} else {
+				String sql = "select id,inuse_count,idle_count,floor,jiffy_stand from park_jiffy_stand where idle_count>0  order by update_date desc";
+				List<Map<String, Object>> lists = jdbcTemplate.queryForList(sql);
+				if (lists.size() > 0) {
+					String id = (String) lists.get(0).get("id");
+					String floor = (String) lists.get(0).get("floor");
+					String jiffyStand = (String) lists.get(0).get("jiffy_stand");
+					int inuseCount = (Integer) lists.get(0).get("inuse_count");
+					int idleCount = (Integer) lists.get(0).get("idle_count");
+					inuseCount++;
+					idleCount--;
+					String updateSql = "update park_jiffy_stand set inuse_count = " + inuseCount + ", idle_count = "
+							+ idleCount + " where id = \"" + id + "\"";
+					jdbcTemplate.update(updateSql);
+					pjs = new ParkJiffyStand();
+					pjs.setFloor(floor);
+					pjs.setJiffyStand(jiffyStand);
+					pjs.setId(id);
+				}
+			}
 		}
 		return pjs;
 	}
