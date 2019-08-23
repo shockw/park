@@ -39,6 +39,7 @@ import com.reache.jeemanage.common.utils.StringUtils;
 import com.reache.jeemanage.common.web.BaseController;
 import com.reache.jeemanage.modules.park.Constant;
 import com.reache.jeemanage.modules.park.component.NettyConfig;
+import com.reache.jeemanage.modules.park.component.ParkJiffyStandOperation;
 import com.reache.jeemanage.modules.park.entity.ParkJiffyStand;
 import com.reache.jeemanage.modules.park.entity.ParkOrder;
 import com.reache.jeemanage.modules.park.service.ParkJiffyStandService;
@@ -129,28 +130,18 @@ public class DoorController extends BaseController {
 		return "redirect:" + Global.getAdminPath() + "/park/doorAccess/index";
 
 	}
-	@RequestMapping(value = "/jiffyStandReset")
-	public String jiffyStandReset(HttpServletRequest request, HttpServletResponse response, Model model,
+	
+	@RequestMapping(value = { "jiffyStandOper"})
+	public String jiffyStandOper(ParkJiffyStand parkJiffyStand,HttpServletRequest request, HttpServletResponse response, Model model) {
+		return "modules/park/jiffyStandFallDown";
+	}
+	
+	@RequestMapping(value = "/jiffyStandFallDown")
+	public String jiffyStandFallDown(ParkJiffyStand parkJiffyStand, HttpServletRequest request, HttpServletResponse response, Model model,
 			RedirectAttributes redirectAttributes) {
-		try {
-			// 车架复位
-			String req = "{\"cmd\":\"update\",\"type\":\"reset\"}";
-			Iterator<Channel> iterator = NettyConfig.group.iterator();
-			while (iterator.hasNext()) {
-				try {
-					ByteBuf pingMessage = Unpooled.buffer();
-					pingMessage.writeBytes(req.getBytes());
-					Channel channel = iterator.next();
-					channel.writeAndFlush(pingMessage);
-					System.out.println("车架复位命令发出！");
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		redirectAttributes.addFlashAttribute("message", "已开门!");
-		return "redirect:" + Global.getAdminPath() + "/park/doorAccess/index";
+		int floor = Integer.valueOf(parkJiffyStand.getFloor());
+		ParkJiffyStandOperation.operation("in", "manager_operation",floor);
+		redirectAttributes.addFlashAttribute("message", "操作完成!");
+		return "redirect:" + Global.getAdminPath() + "/park/doorAccess/jiffyStandOper";
 	}
 }

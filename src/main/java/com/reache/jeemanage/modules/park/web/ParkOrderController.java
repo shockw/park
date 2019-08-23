@@ -37,7 +37,9 @@ import com.reache.jeemanage.common.utils.StringUtils;
 import com.reache.jeemanage.common.web.BaseController;
 import com.reache.jeemanage.modules.park.Constant;
 import com.reache.jeemanage.modules.park.TokenManager;
+import com.reache.jeemanage.modules.park.api.ParkAPI;
 import com.reache.jeemanage.modules.park.component.ParkJiffyStandOperation;
+import com.reache.jeemanage.modules.park.component.WebSocketHandler;
 import com.reache.jeemanage.modules.park.entity.ParkJiffyStand;
 import com.reache.jeemanage.modules.park.entity.ParkOrder;
 import com.reache.jeemanage.modules.park.service.ParkJiffyStandService;
@@ -59,6 +61,8 @@ public class ParkOrderController extends BaseController {
 	private ParkOrderService parkOrderService;
 	@Autowired
 	private ParkJiffyStandService parkJiffyStandService;
+	@Autowired
+	private WebSocketHandler webSocketHandler;
 
 	@ModelAttribute
 	public ParkOrder get(@RequestParam(required = false) String id) {
@@ -71,9 +75,10 @@ public class ParkOrderController extends BaseController {
 		}
 		return entity;
 	}
-	
+
 	/**
 	 * 进入存车操作页面
+	 * 
 	 * @param request
 	 * @param response
 	 * @param model
@@ -83,7 +88,7 @@ public class ParkOrderController extends BaseController {
 	public String list(HttpServletRequest request, HttpServletResponse response, Model model) {
 		return "modules/park/index";
 	}
-	
+
 	@RequiresPermissions("park:parkOrder:view")
 	@RequestMapping(value = { "list", "" })
 	public String list(ParkOrder parkOrder, HttpServletRequest request, HttpServletResponse response, Model model) {
@@ -92,6 +97,17 @@ public class ParkOrderController extends BaseController {
 		model.addAttribute("page", page);
 		return "modules/park/parkOrderList";
 	}
+	
+	@RequiresPermissions("park:parkOrder:view")
+	@RequestMapping(value = { "history", "" })
+	public String history(ParkOrder parkOrder, HttpServletRequest request, HttpServletResponse response, Model model) {
+		parkOrder.setStatus("5");
+		Page<ParkOrder> pop = new Page<ParkOrder>(request, response);
+		Page<ParkOrder> page = parkOrderService.findPage(pop, parkOrder);
+		model.addAttribute("page", page);
+		return "modules/park/parkOrderHistory";
+	}
+	
 
 	@RequiresPermissions("park:parkOrder:view")
 	@RequestMapping(value = "form")
@@ -117,8 +133,10 @@ public class ParkOrderController extends BaseController {
 		}
 		return "redirect:" + Global.getAdminPath() + "/park/parkOrder/list?repage";
 	}
+
 	/**
 	 * 提供最近的待付款的账单
+	 * 
 	 * @param request
 	 * @param response
 	 * @param model
@@ -127,18 +145,6 @@ public class ParkOrderController extends BaseController {
 	@RequiresPermissions("park:parkOrder:edit")
 	@RequestMapping(value = { "pay", "" })
 	public String pay(HttpServletRequest request, HttpServletResponse response, Model model) {
-		ParkOrder parkOrder = new ParkOrder();
-		Page<ParkOrder> pop = new Page<ParkOrder>(request, response);
-		pop.setOrderBy("endTime asc");
-		parkOrder.setStatus("3");
-		Page<ParkOrder> page = parkOrderService.findPage(pop, parkOrder);
-		List<ParkOrder> list = page.getList();
-		if (list.size() > 0) {
-			model.addAttribute("hasPay", "1");
-			model.addAttribute("parkOrder", list.get(0));
-		} else {
-			model.addAttribute("hasPay", "0");
-		}
 		return "modules/park/parkPayForm";
 	}
 
@@ -146,31 +152,31 @@ public class ParkOrderController extends BaseController {
 	@RequiresPermissions("park:parkOrder:edit")
 	@RequestMapping(value = { "bill", "" })
 	public String pay(ParkOrder parkOrder) {
-		// 向微信发起支付请求
-		MyConfig config;
-		try {
-			config = new MyConfig();
-			WXPay wxpay = new WXPay(config, null, true);
-			Map<String, String> reqData = new HashMap<String, String>();
-			reqData.put("device_info", "000");
-			reqData.put("body", "zongdian");
-			reqData.put("out_trade_no", parkOrder.getPersonId());
-			reqData.put("total_fee", parkOrder.getCost()+"00");
-			reqData.put("spbill_create_ip", "112.32.71.251");
-			reqData.put("auth_code", parkOrder.getPayCode());
-			Map<String, String> resData = wxpay.microPay(reqData);
-			System.out.println(resData);
-		} catch (Exception e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
-		// 修改订单状态
-		parkOrder.setStatus("4");
-		parkOrder.setPayTime(new Date());
-		parkOrderService.save(parkOrder);
-		
-		try {
-			// 开门
+		String payCode = parkOrder.getPayCode();
+		// 查找待付款订单，如果没有，则不语音播报无付款订单，不需要付款
+		if (ParkAPI.pendingOrder != null) {
+			parkOrder = ParkAPI.pendingOrder;
+			parkOrder.setPayCode(payCode);
+			ParkAPI.pendingOrder = null;
+			// 向微信发起支付请求
+			MyConfig config;
+			try {
+				config = new MyConfig();
+				WXPay wxpay = new WXPay(config, null, true);
+				Map<String, String> reqData = new HashMap<String, String>();
+				reqData.put("device_info", "000");
+				reqData.put("body", "zongdian");
+				reqData.put("out_trade_no", parkOrder.getPersonId());
+				reqData.put("total_fee", parkOrder.getCost() + "00");
+				reqData.put("spbill_create_ip", "112.32.71.251");
+				reqData.put("auth_code", parkOrder.getPayCode());
+				Map<String, String> resData = wxpay.microPay(reqData);
+				System.out.println(resData);
+				// 修改订单状态
+				parkOrder.setStatus("5");
+				parkOrder.setPayTime(new Date());
+				parkOrderService.save(parkOrder);
+				// 开门
 				CloseableHttpClient httpclient = HttpClients.createDefault();
 				HttpPost httpPost = new HttpPost(Constant.OUT_URL + "/device/openDoorControl");
 				httpPost.setHeader("Content-Type", "application/x-www-form-urlencoded");
@@ -178,7 +184,7 @@ public class ParkOrderController extends BaseController {
 				nvps.add(new BasicNameValuePair("pass", "88888888"));
 				httpPost.setEntity(new UrlEncodedFormEntity(nvps));
 				httpclient.execute(httpPost);
-			// 删除入口设备和出口设备上的注册信息，
+				// 删除入口设备和出口设备上的注册信息，
 				HttpPost httpPost2 = new HttpPost(Constant.IN_URL + "/person/delete");
 				httpPost2.setHeader("Content-Type", "application/x-www-form-urlencoded");
 				List<NameValuePair> nvps2 = new ArrayList<NameValuePair>();
@@ -194,7 +200,23 @@ public class ParkOrderController extends BaseController {
 				nvps1.add(new BasicNameValuePair("id", parkOrder.getPersonId()));
 				httpPost1.setEntity(new UrlEncodedFormEntity(nvps1));
 				httpclient.execute(httpPost1);
-		} catch (Exception e) {
+				//更新车架空闲车位数
+				ParkJiffyStand parkJiffyStand = new ParkJiffyStand();
+				parkJiffyStand.setFloor(parkOrder.getFloor());
+				parkJiffyStand = parkJiffyStandService.findList(parkJiffyStand).get(0);
+				int idleCount = Integer.valueOf(parkJiffyStand.getIdleCount())+1;
+				int inuseCount = Integer.valueOf(parkJiffyStand.getInuseCount())-1;
+				parkJiffyStand.setIdleCount(idleCount+"");
+				parkJiffyStand.setInuseCount(inuseCount+"");
+				parkJiffyStandService.save(parkJiffyStand);
+				//触发待付款页面信息更新
+				webSocketHandler.updateAndSendMsg("closed");
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}else {
+			// 选择播放文件
+			ParkAPI.audioPlay("audio/无待付款订单不需要付款.wav");
 		}
 		return "redirect:" + Global.getAdminPath() + "/park/parkOrder/pay?repage";
 	}
@@ -206,15 +228,15 @@ public class ParkOrderController extends BaseController {
 		addMessage(redirectAttributes, "删除停车订单成功");
 		return "redirect:" + Global.getAdminPath() + "/park/parkOrder/list?repage";
 	}
-	
+
 	@RequiresPermissions("park:parkOrder:edit")
 	@RequestMapping(value = "tokenManager")
-	public String tokenManager( Model model) {
-		String statusDesc = TokenManager.getStatus()==true?"可用":"不可用";
+	public String tokenManager(Model model) {
+		String statusDesc = TokenManager.getStatus() == true ? "可用" : "不可用";
 		model.addAttribute("statusDesc", statusDesc);
 		return "modules/park/tokenManager";
 	}
-	
+
 	@RequiresPermissions("park:parkOrder:edit")
 	@RequestMapping(value = "tokenOccupy")
 	public String tokenOccupy(RedirectAttributes redirectAttributes) {
@@ -222,7 +244,7 @@ public class ParkOrderController extends BaseController {
 		addMessage(redirectAttributes, "令牌占用成功");
 		return "redirect:" + Global.getAdminPath() + "/park/parkOrder/tokenManager?repage";
 	}
-	
+
 	@RequiresPermissions("park:parkOrder:edit")
 	@RequestMapping(value = "tokenRelease")
 	public String tokenRelease(RedirectAttributes redirectAttributes) {

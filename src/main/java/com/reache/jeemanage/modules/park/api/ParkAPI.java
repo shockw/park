@@ -30,11 +30,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.reache.jeemanage.common.config.Global;
+import com.reache.jeemanage.common.mapper.JsonMapper;
 import com.reache.jeemanage.common.utils.FtpUtil;
 import com.reache.jeemanage.common.utils.IdGen;
 import com.reache.jeemanage.modules.park.Constant;
 import com.reache.jeemanage.modules.park.TokenManager;
+import com.reache.jeemanage.modules.park.component.NettyConfig;
 import com.reache.jeemanage.modules.park.component.ParkJiffyStandOperation;
+import com.reache.jeemanage.modules.park.component.WebSocketHandler;
 import com.reache.jeemanage.modules.park.entity.ParkJiffyStand;
 import com.reache.jeemanage.modules.park.entity.ParkOrder;
 import com.reache.jeemanage.modules.park.entity.ParkPayRule;
@@ -67,11 +70,17 @@ public class ParkAPI {
 	private ParkOrderService parkOrderService;
 	@Autowired
 	private ParkPayRuleService parkPayRuleService;
+	@Autowired
+	private WebSocketHandler webSocketHandler;
 
 	// 下存车停单，触发人脸注册
 	@RequestMapping(value = "/park")
 	@ResponseBody
 	public String park() {
+		if(NettyConfig.group.isEmpty()) {
+			audioPlay("audio/没有连接车架不能停车.wav");
+			return Constant.ERROR_RESULT;
+		}
 		if (TokenManager.occupy()) {
 			// 占用车位
 			ParkJiffyStand pjs = parkJiffyStandService.occupy();
@@ -116,8 +125,7 @@ public class ParkAPI {
 					po.setStatus("0");
 					parkOrderService.save(po);
 					// 选择播放文件
-					String fileName = this.getClass().getClassLoader().getResource("audio/占用车位成功.wav").getPath();
-					audioPlay(fileName);
+					audioPlay("audio/占用车位成功.wav");
 					ParkJiffyStandOperation.operation("in", personId, Integer.parseInt(po.getFloor()));
 					CountDownLatch latch = new CountDownLatch(1);
 					faceLatchs.put(personId, latch);
@@ -128,23 +136,20 @@ public class ParkAPI {
 					return Constant.SUCCESS_RESULT;
 				} catch (Exception e) {
 					// 选择播放文件
-					String fileName = this.getClass().getClassLoader().getResource("audio/人员信息注册失败.wav").getPath();
-					audioPlay(fileName);
+					audioPlay("audio/人员信息注册失败.wav");
 					e.printStackTrace();
 					TokenManager.release();
 					return Constant.ERROR_RESULT;
 				}
 			} else {
 				// 选择播放文件
-				String fileName = this.getClass().getClassLoader().getResource("audio/车位已满.wav").getPath();
-				audioPlay(fileName);
+				audioPlay("audio/车位已满.wav");
 				TokenManager.release();
 				return Constant.ERROR_RESULT;
 			}
 		} else {
 			// 选择播放文件
-			String fileName = this.getClass().getClassLoader().getResource("audio/他人在存取车.wav").getPath();
-			audioPlay(fileName);
+			audioPlay("audio/他人在存取车.wav");
 			return Constant.ERROR_RESULT;
 		}
 	}
@@ -203,14 +208,14 @@ public class ParkAPI {
 				t.start();
 			} else {
 				// 没有正常落架，则视为异常，语音播报异常，释放令牌
-				String fileName = this.getClass().getClassLoader().getResource("audio/车架操作异常.wav").getPath();
-				audioPlay(fileName);
+				audioPlay("audio/车架操作异常.wav");
 				TokenManager.release();
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
-		}finally {
+			// 没有正常落架，则视为异常，语音播报异常，释放令牌
+			audioPlay("audio/车架操作异常.wav");
 			TokenManager.release();
+			e.printStackTrace();
 		}
 		return Constant.SUCCESS_RESULT;
 	}
@@ -251,23 +256,19 @@ public class ParkAPI {
 						t.start();
 					} else {
 						// 没有正常落架，则视为异常，语音播报异常，释放令牌
-						String fileName = this.getClass().getClassLoader().getResource("audio/车架操作异常.wav").getPath();
-						audioPlay(fileName);
+						audioPlay("audio/车架操作异常.wav");
 						TokenManager.release();
 					}
-
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
 			} else {
 				// 选择播放文件
-				String fileName = this.getClass().getClassLoader().getResource("audio/他人在存取车.wav").getPath();
-				audioPlay(fileName);
+				audioPlay("audio/他人在存取车.wav");
 			}
 		} else {
 			System.out.println("---识别为陌生人，不允许开门---");
-			String fileName = this.getClass().getClassLoader().getResource("audio/陌生人禁止操作.wav").getPath();
-			audioPlay(fileName);
+			audioPlay("audio/陌生人禁止操作.wav");
 		}
 		return Constant.SUCCESS_RESULT;
 	}
@@ -286,28 +287,26 @@ public class ParkAPI {
 			if ("4".equals(pendingOrder.getStatus())) {
 				// 费用计算
 				ParkPayRule ppr = parkPayRuleService.get("1");
-				String ss[] = path.split("/");
-				FtpUtil.downloadFtpFile(Constant.FTP_OUT, Constant.FTP_PORT, "/recordsImg/" + ss[4], Constant.LOCAL_DIR,
-						ss[5]);
-				String base64code = getImageStr(Constant.LOCAL_DIR + ss[5]);
-				pendingOrder.setOutPic(base64code);
+//				String ss[] = path.split("/");
+//				FtpUtil.downloadFtpFile(Constant.FTP_OUT, Constant.FTP_PORT, "/recordsImg/" + ss[4], Constant.LOCAL_DIR,
+//						ss[5]);
+//				String base64code = getImageStr(Constant.LOCAL_DIR + ss[5]);
+//				pendingOrder.setOutPic(base64code);
 				pendingOrder.setEndTime(new Date());
 				long times = pendingOrder.getEndTime().getTime() - pendingOrder.getStartTime().getTime();
 				pendingOrder.setCost(
 						(int) (times / (Integer.valueOf(ppr.getPeriod()) * 60000) + 1) * Integer.valueOf(ppr.getPrice())
 								+ "");
 				parkOrderService.save(pendingOrder);
-				String fileName = this.getClass().getClassLoader().getResource("audio/账单已生成请微信付款 .wav").getPath();
-				audioPlay(fileName);
+				audioPlay("audio/账单已生成请微信付款.wav");
+				webSocketHandler.updateAndSendMsg(JsonMapper.toJsonString(pendingOrder));
 			} else {
 				System.out.println("---没有取车，请离开----");
-				String fileName = this.getClass().getClassLoader().getResource("audio/没有取车请离开.wav").getPath();
-				audioPlay(fileName);
+				audioPlay("audio/不取车请从侧门离开.wav");
 			}
 		} else {
 			System.out.println("---人脸识别失败,无法生成账单----");
-			String fileName = this.getClass().getClassLoader().getResource("audio/陌生人禁止操作.wav").getPath();
-			audioPlay(fileName);
+			audioPlay("audio/陌生人禁止操作.wav");
 		}
 		return Constant.SUCCESS_RESULT;
 	}
@@ -335,11 +334,12 @@ public class ParkAPI {
 	}
 
 	public static void audioPlay(String audioPath) {
-		// 选择播放文件
-		File file = new File(audioPath);
 		// 创建audioclip对象
 		AudioClip audioClip = null;
 		try {
+			String fileName = ParkAPI.class.getClassLoader().getResource(audioPath).getPath();
+			// 选择播放文件
+			File file = new File(fileName);
 			// 将file转换为url
 			audioClip = Applet.newAudioClip(file.toURL());
 			// 循环播放 播放一次可以使用audioClip.play
@@ -349,6 +349,10 @@ public class ParkAPI {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+	}
+	
+	public static void main(String[] args) {
+		audioPlay("audio/他人在存取车.wav");
 	}
 
 }
