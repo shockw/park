@@ -46,7 +46,7 @@ public class BarrierFlagMonitor implements Runnable{
 				}
 				pos.save(parkOrder);
 				break;
-			}else if(flagCount>60&&!barrierFlags.contains("has")) {
+			}else if(i>60&&!barrierFlags.contains("has")) {
 				//释放令牌
 				TokenManager.release();
 				ParkOrderService pos = SpringContextHolder.getBean("parkOrderService");
@@ -63,10 +63,9 @@ public class BarrierFlagMonitor implements Runnable{
 				}
 				pos.save(parkOrder);
 				break;
-			}else if(flagCount>110&&"has".equals(barrierFlags.get(flagCount-1))){
+			}else if(i>110&&"has".equals(barrierFlags.get(flagCount-1))){
 				//超长时间检测后仍然有人，并且语音告警，重复播报多次，直至循环结束，此时需要人工干预，释放令牌
-				String fileName = this.getClass().getClassLoader().getResource("audio/超长时间车架下有人.wav").getPath();
-				ParkAPI.audioPlay(fileName);
+				ParkAPI.audioPlay("audio/车架操作异常.wav");
 			}
 		}
 		

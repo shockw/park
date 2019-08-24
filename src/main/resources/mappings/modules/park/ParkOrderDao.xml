@@ -137,7 +137,9 @@
 			start_time = #{startTime},
 			end_time = #{endTime},
 			pay_time = #{payTime},
-			cost = #{cost},
+			<if test="cost != null and cost != ''">
+				cost = #{cost},
+			</if>
 			<if test="inPic != null and inPic != ''">
 				in_pic = #{inPic},
 			</if>

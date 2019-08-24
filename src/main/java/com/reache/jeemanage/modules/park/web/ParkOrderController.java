@@ -161,45 +161,45 @@ public class ParkOrderController extends BaseController {
 			// 向微信发起支付请求
 			MyConfig config;
 			try {
-				config = new MyConfig();
-				WXPay wxpay = new WXPay(config, null, true);
-				Map<String, String> reqData = new HashMap<String, String>();
-				reqData.put("device_info", "000");
-				reqData.put("body", "zongdian");
-				reqData.put("out_trade_no", parkOrder.getPersonId());
-				reqData.put("total_fee", parkOrder.getCost() + "00");
-				reqData.put("spbill_create_ip", "112.32.71.251");
-				reqData.put("auth_code", parkOrder.getPayCode());
-				Map<String, String> resData = wxpay.microPay(reqData);
-				System.out.println(resData);
+//				config = new MyConfig();
+//				WXPay wxpay = new WXPay(config, null, true);
+//				Map<String, String> reqData = new HashMap<String, String>();
+//				reqData.put("device_info", "000");
+//				reqData.put("body", "zongdian");
+//				reqData.put("out_trade_no", parkOrder.getPersonId());
+//				reqData.put("total_fee", parkOrder.getCost() + "00");
+//				reqData.put("spbill_create_ip", "112.32.71.251");
+//				reqData.put("auth_code", parkOrder.getPayCode());
+//				Map<String, String> resData = wxpay.microPay(reqData);
+//				System.out.println(resData);
 				// 修改订单状态
 				parkOrder.setStatus("5");
 				parkOrder.setPayTime(new Date());
 				parkOrderService.save(parkOrder);
 				// 开门
-				CloseableHttpClient httpclient = HttpClients.createDefault();
-				HttpPost httpPost = new HttpPost(Constant.OUT_URL + "/device/openDoorControl");
-				httpPost.setHeader("Content-Type", "application/x-www-form-urlencoded");
-				List<NameValuePair> nvps = new ArrayList<NameValuePair>();
-				nvps.add(new BasicNameValuePair("pass", "88888888"));
-				httpPost.setEntity(new UrlEncodedFormEntity(nvps));
-				httpclient.execute(httpPost);
+//				CloseableHttpClient httpclient = HttpClients.createDefault();
+//				HttpPost httpPost = new HttpPost(Constant.OUT_URL + "/device/openDoorControl");
+//				httpPost.setHeader("Content-Type", "application/x-www-form-urlencoded");
+//				List<NameValuePair> nvps = new ArrayList<NameValuePair>();
+//				nvps.add(new BasicNameValuePair("pass", "88888888"));
+//				httpPost.setEntity(new UrlEncodedFormEntity(nvps));
+//				httpclient.execute(httpPost);
 				// 删除入口设备和出口设备上的注册信息，
-				HttpPost httpPost2 = new HttpPost(Constant.IN_URL + "/person/delete");
-				httpPost2.setHeader("Content-Type", "application/x-www-form-urlencoded");
-				List<NameValuePair> nvps2 = new ArrayList<NameValuePair>();
-				nvps2.add(new BasicNameValuePair("pass", "88888888"));
-				nvps2.add(new BasicNameValuePair("id", parkOrder.getPersonId()));
-				httpPost2.setEntity(new UrlEncodedFormEntity(nvps2));
-				httpclient.execute(httpPost2);
+//				HttpPost httpPost2 = new HttpPost(Constant.IN_URL + "/person/delete");
+//				httpPost2.setHeader("Content-Type", "application/x-www-form-urlencoded");
+//				List<NameValuePair> nvps2 = new ArrayList<NameValuePair>();
+//				nvps2.add(new BasicNameValuePair("pass", "88888888"));
+//				nvps2.add(new BasicNameValuePair("id", parkOrder.getPersonId()));
+//				httpPost2.setEntity(new UrlEncodedFormEntity(nvps2));
+//				httpclient.execute(httpPost2);
 
-				HttpPost httpPost1 = new HttpPost(Constant.OUT_URL + "/person/delete");
-				httpPost1.setHeader("Content-Type", "application/x-www-form-urlencoded");
-				List<NameValuePair> nvps1 = new ArrayList<NameValuePair>();
-				nvps1.add(new BasicNameValuePair("pass", "88888888"));
-				nvps1.add(new BasicNameValuePair("id", parkOrder.getPersonId()));
-				httpPost1.setEntity(new UrlEncodedFormEntity(nvps1));
-				httpclient.execute(httpPost1);
+//				HttpPost httpPost1 = new HttpPost(Constant.OUT_URL + "/person/delete");
+//				httpPost1.setHeader("Content-Type", "application/x-www-form-urlencoded");
+//				List<NameValuePair> nvps1 = new ArrayList<NameValuePair>();
+//				nvps1.add(new BasicNameValuePair("pass", "88888888"));
+//				nvps1.add(new BasicNameValuePair("id", parkOrder.getPersonId()));
+//				httpPost1.setEntity(new UrlEncodedFormEntity(nvps1));
+//				httpclient.execute(httpPost1);
 				//更新车架空闲车位数
 				ParkJiffyStand parkJiffyStand = new ParkJiffyStand();
 				parkJiffyStand.setFloor(parkOrder.getFloor());
