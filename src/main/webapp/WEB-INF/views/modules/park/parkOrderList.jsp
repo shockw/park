@@ -6,8 +6,56 @@
 	<meta name="decorator" content="default"/>
 	<script type="text/javascript">
 		$(document).ready(function() {
+			$("#parkButton").click(function(){
+				$.get("${ctx}/park/api/park",function(data,status){
+					if(data.indexOf("true") > 0 ){
+						alert("请到入口处进行人脸识别！" );
+					}else{
+						alert("已有人在存取车，请稍后再试！" );
+					}
+				});
+			});
+			
+			$("#dataClean").click(function(){
+				$.get("${ctx}/park/api/clean",function(data,status){
+					if(data.indexOf("true") > 0 ){
+						alert("门禁数据清理完毕！" );
+					}else{
+						alert("门禁数据清理失败！" );
+					}
+				});
+			});
+			
+			$("#inAccess").click(function(){
+				$.get("${ctx}/park/api/in",function(data,status){
+					if(data.indexOf("true") > 0 ){
+						alert("开门成功！" );
+					}else{
+						alert("开门失败！" );
+					}
+				});
+			});
+			$("#outAccess").click(function(){
+				$.get("${ctx}/park/api/out",function(data,status){
+					if(data.indexOf("true") > 0 ){
+						alert("开门成功！" );
+					}else{
+						alert("开门失败！" );
+					}
+				});
+			});
+			/* $("#orderClean").click(function(){
+				$.get("${ctx}/park/api/orderClean",function(data,status){
+					if(data.indexOf("true") > 0 ){
+						alert("在途订单清理成功！" );
+					}else{
+						alert("在途订单清理失败！" );
+					}
+				});
+			}); */
 			
 		});
+		
 		function page(n,s){
 			$("#pageNo").val(n);
 			$("#pageSize").val(s);
@@ -19,8 +67,14 @@
 <body>
 	<ul class="nav nav-tabs">
 		<li class="active"><a href="${ctx}/park/parkOrder/list">停车订单列表</a></li>
-		<shiro:hasPermission name="park:parkOrder:edit"><li><a href="${ctx}/park/parkOrder/form">停车订单添加</a></li></shiro:hasPermission>
+		<%-- <shiro:hasPermission name="park:parkOrder:edit"><li><a href="${ctx}/park/parkOrder/form">停车订单添加</a></li></shiro:hasPermission> --%>
 	</ul>
+	<button id="parkButton" style="width:100px;height:50px;font-size:20px;color:red" >我要停车</button>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+	<button id="dataClean" style="width:120px;height:50px;font-size:16px;color:red">门禁数据清理</button>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+	<button id="inAccess" style="width:100px;height:50px;font-size:20px;color:red">入口开门</button>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+	<button id="outAccess" style="width:100px;height:50px;font-size:20px;color:red">出口开门</button>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<!-- 	<button id="orderClean" style="width:100px;height:50px;font-size:20px;color:red">在途订单清理</button>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+ -->	<p></p>
 	<form:form id="searchForm" modelAttribute="parkOrder" action="${ctx}/park/parkOrder/list" method="post" class="breadcrumb form-search">
 		<input id="pageNo" name="pageNo" type="hidden" value="${page.pageNo}"/>
 		<input id="pageSize" name="pageSize" type="hidden" value="${page.pageSize}"/>
@@ -78,8 +132,14 @@
 				<td>
 					${fns:getDictLabel(parkOrder.jiffyStand, 'park_jiffy_stand', '')}
 				</td>
-				<td>
+				<%-- <td>
+				
 					${parkOrder.personId}
+				</td> --%>
+				<td style="width:50px;">
+					<div style="width:50px;white-space:nowrap;text-overflow:ellipsis;overflow:hidden;" title="${parkOrder.personId}">
+						${parkOrder.personId}
+					</div>
 				</td>
 				<td>
 							<img src="data:image/png;base64,${parkOrder.inPic}" height="100" width="100"/>
@@ -88,16 +148,16 @@
 							<img src="data:image/png;base64,${parkOrder.outPic}" height="100" width="100"/>
 				</td>
 				<td>
-					<fmt:formatDate value="${parkOrder.startTime}" pattern="yyyy-MM-dd HH:mm:ss"/>
+					<fmt:formatDate value="${parkOrder.startTime}" pattern="MM-dd HH:mm"/>
 				</td>
 				<td>
-					<fmt:formatDate value="${parkOrder.endTime}" pattern="yyyy-MM-dd HH:mm:ss"/>
+					<fmt:formatDate value="${parkOrder.endTime}" pattern="MM-dd HH:mm"/>
 				</td>
 				<td>
-					<fmt:formatDate value="${parkOrder.payTime}" pattern="yyyy-MM-dd HH:mm:ss"/>
+					<fmt:formatDate value="${parkOrder.payTime}" pattern="MM-dd HH:mm"/>
 				</td>
 				<td>
-					${parkOrder.cost}
+					${parkOrder.cost}元
 				</td>
 				<td>
 					${fns:getDictLabel(parkOrder.status, 'park_order_status', '')}

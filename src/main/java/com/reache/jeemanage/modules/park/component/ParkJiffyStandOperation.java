@@ -32,8 +32,9 @@ public class ParkJiffyStandOperation {
 	 */
 	public static void operation(String type, String userId, int floor) {
 		synchronized (lock) {
-			String req = "{\"cmd\":\"req\",\"type\":\"" + type + "\",\"transId\":\"" + userId + "\",\"userId\":\""
-					+ userId + "\",\"floor\":" + floor + "}";
+			int floor1 = floor-1;
+			String req = "{\"cmd\":\"req\",\"type\":\"" + type + "\",\"transId\":\"" + userId.substring(0, 8) + "\",\"userId\":\""
+					+ userId + "\",\"floor\":" + floor1 + "}";
 			System.out.println("车架连接信息：" + NettyConfig.group);
 			Iterator<Channel> iterator = NettyConfig.group.iterator();
 			while (iterator.hasNext()) {
@@ -43,7 +44,7 @@ public class ParkJiffyStandOperation {
 					Channel channel = iterator.next();
 					CountDownLatch latch = new CountDownLatch(1);
 					channel.writeAndFlush(pingMessage);
-					latchs.put(userId, latch);
+					latchs.put(userId.substring(0, 8), latch);
 					System.out.println("向车架发送出入库操作成功！");
 					//记录接口日志
 					ParkIntfLog parkIntfLog = new ParkIntfLog();
@@ -69,7 +70,8 @@ public class ParkJiffyStandOperation {
 	}
 
 	public static void barrierQuery(String transId) {
-		String req = "{\"cmd\":\"req\",\"type\":\"barrier\",\"transId\":\"" + transId + "\"}";
+		
+		String req = "{\"cmd\":\"req\",\"type\":\"barrier\",\"transId\":\"" + transId.substring(0, 8) + "\"}";
 		System.out.println("车架连接信息：" + NettyConfig.group);
 		Iterator<Channel> iterator = NettyConfig.group.iterator();
 		while (iterator.hasNext()) {

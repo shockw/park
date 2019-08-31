@@ -14,5 +14,4 @@ import com.reache.jeemanage.modules.park.entity.ParkOrder;
  */
 @MyBatisDao
 public interface ParkOrderDao extends CrudDao<ParkOrder> {
-	
 }

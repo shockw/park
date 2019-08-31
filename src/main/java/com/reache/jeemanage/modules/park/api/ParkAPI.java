@@ -29,7 +29,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import com.reache.jeemanage.common.config.Global;
 import com.reache.jeemanage.common.mapper.JsonMapper;
 import com.reache.jeemanage.common.utils.FtpUtil;
 import com.reache.jeemanage.common.utils.IdGen;
@@ -77,7 +76,7 @@ public class ParkAPI {
 	@RequestMapping(value = "/park")
 	@ResponseBody
 	public String park() {
-		if(NettyConfig.group.isEmpty()) {
+		if (NettyConfig.group.isEmpty()) {
 			audioPlay("audio/没有连接车架不能停车.wav");
 			return Constant.ERROR_RESULT;
 		}
@@ -90,7 +89,7 @@ public class ParkAPI {
 				// 人员注册,需要注册两次
 				CloseableHttpClient httpclient = HttpClients.createDefault();
 				try {
-					//入口人员注册
+					// 入口人员注册
 					HttpPost httpPost = new HttpPost(Constant.IN_URL + "/person/create");
 					httpPost.setHeader("Content-Type", "application/x-www-form-urlencoded");
 					List<NameValuePair> nvps = new ArrayList<NameValuePair>();
@@ -100,15 +99,15 @@ public class ParkAPI {
 					nvps.add(new BasicNameValuePair("person", personInfo));
 					httpPost.setEntity(new UrlEncodedFormEntity(nvps));
 					httpclient.execute(httpPost);
-					//出口人员注册
-//					HttpPost httpPostO = new HttpPost(Constant.OUT_URL + "/person/create");
-//					httpPostO.setHeader("Content-Type", "application/x-www-form-urlencoded");
-//					List<NameValuePair> nvpsO = new ArrayList<NameValuePair>();
-//					nvpsO.add(new BasicNameValuePair("pass", "88888888"));
-//					nvpsO.add(new BasicNameValuePair("person", personInfo));
-//					httpPostO.setEntity(new UrlEncodedFormEntity(nvpsO));
-//					httpclient.execute(httpPostO);
-					//入口门禁的人脸注册接口
+					// 出口人员注册
+					HttpPost httpPostO = new HttpPost(Constant.OUT_URL + "/person/create");
+					httpPostO.setHeader("Content-Type", "application/x-www-form-urlencoded");
+					List<NameValuePair> nvpsO = new ArrayList<NameValuePair>();
+					nvpsO.add(new BasicNameValuePair("pass", "88888888"));
+					nvpsO.add(new BasicNameValuePair("person", personInfo));
+					httpPostO.setEntity(new UrlEncodedFormEntity(nvpsO));
+					httpclient.execute(httpPostO);
+					// 入口门禁的人脸注册接口
 					HttpPost httpPost1 = new HttpPost(Constant.IN_URL + "/face/takeImg");
 					httpPost1.setHeader("Content-Type", "application/x-www-form-urlencoded");
 					List<NameValuePair> nvps1 = new ArrayList<NameValuePair>();
@@ -170,32 +169,32 @@ public class ParkAPI {
 			String base64code = "";
 			CloseableHttpClient httpclient = HttpClients.createDefault();
 			// 将照片同步到出口机器上
-//			FtpUtil.downloadFtpFile(Constant.FTP_IN, Constant.FTP_PORT, "/faceRegister", Constant.LOCAL_DIR,
-//					newImgPath.substring(newImgPath.indexOf("faceRegister") + 13));
-//			base64code = getImageStr(
-//					Constant.LOCAL_DIR + newImgPath.substring(newImgPath.indexOf("faceRegister") + 13));
-//			HttpPost httpPost1 = new HttpPost(Constant.OUT_URL + "/face/create");
-//			httpPost1.setHeader("Content-Type", "application/x-www-form-urlencoded");
-//			List<NameValuePair> nvps1 = new ArrayList<NameValuePair>();
-//			nvps1.add(new BasicNameValuePair("pass", "88888888"));
-//			nvps1.add(new BasicNameValuePair("personId", personId));
-//			nvps1.add(new BasicNameValuePair("faceId", ""));
-//			nvps1.add(new BasicNameValuePair("imgBase64", base64code));
-//			httpPost1.setEntity(new UrlEncodedFormEntity(nvps1));
-//			httpclient.execute(httpPost1);
+			FtpUtil.downloadFtpFile(Constant.FTP_IN, Constant.FTP_PORT, "/faceRegister", Constant.LOCAL_DIR,
+					newImgPath.substring(newImgPath.indexOf("faceRegister") + 13));
+			base64code = getImageStr(
+					Constant.LOCAL_DIR + newImgPath.substring(newImgPath.indexOf("faceRegister") + 13));
+			HttpPost httpPost1 = new HttpPost(Constant.OUT_URL + "/face/create");
+			httpPost1.setHeader("Content-Type", "application/x-www-form-urlencoded");
+			List<NameValuePair> nvps1 = new ArrayList<NameValuePair>();
+			nvps1.add(new BasicNameValuePair("pass", "88888888"));
+			nvps1.add(new BasicNameValuePair("personId", personId));
+			nvps1.add(new BasicNameValuePair("faceId", ""));
+			nvps1.add(new BasicNameValuePair("imgBase64", base64code));
+			httpPost1.setEntity(new UrlEncodedFormEntity(nvps1));
+			httpclient.execute(httpPost1);
 			// 等待车架落地
-			CountDownLatch countDownLatch = ParkJiffyStandOperation.latchs.get(personId);
+			CountDownLatch countDownLatch = ParkJiffyStandOperation.latchs.get(personId.substring(0,8));
 			boolean b = countDownLatch.await(600, TimeUnit.SECONDS);
-			ParkJiffyStandOperation.latchs.remove(personId);
+			ParkJiffyStandOperation.latchs.remove(personId.substring(0,8));
 			// 如果正常落架
 			if (b == true) {
 				// 开门
-//				HttpPost httpPost = new HttpPost(Constant.IN_URL + "/device/openDoorControl");
-//				httpPost.setHeader("Content-Type", "application/x-www-form-urlencoded");
-//				List<NameValuePair> nvps = new ArrayList<NameValuePair>();
-//				nvps.add(new BasicNameValuePair("pass", "88888888"));
-//				httpPost.setEntity(new UrlEncodedFormEntity(nvps));
-//				httpclient.execute(httpPost);
+				HttpPost httpPost = new HttpPost(Constant.IN_URL + "/device/openDoorControl");
+				httpPost.setHeader("Content-Type", "application/x-www-form-urlencoded");
+				List<NameValuePair> nvps = new ArrayList<NameValuePair>();
+				nvps.add(new BasicNameValuePair("pass", "88888888"));
+				httpPost.setEntity(new UrlEncodedFormEntity(nvps));
+				httpclient.execute(httpPost);
 				// 更新订单状态为存车中，将拍照图片上传至数据库保存
 				parkOrder.setPath(newImgPath);
 				parkOrder.setInPic(base64code);
@@ -234,9 +233,9 @@ public class ParkAPI {
 				ParkJiffyStandOperation.operation("out", personId, Integer.parseInt(parkOrder.getFloor()));
 				try {
 					// 等待车架落地
-					CountDownLatch countDownLatch = ParkJiffyStandOperation.latchs.get(personId);
+					CountDownLatch countDownLatch = ParkJiffyStandOperation.latchs.get(personId.substring(0,8));
 					boolean b = countDownLatch.await(600, TimeUnit.SECONDS);
-					ParkJiffyStandOperation.latchs.remove(personId);
+					ParkJiffyStandOperation.latchs.remove(personId.substring(0,8));
 					if (b == true) {
 						// 开门
 						CloseableHttpClient httpclient = HttpClients.createDefault();
@@ -287,11 +286,11 @@ public class ParkAPI {
 			if ("4".equals(pendingOrder.getStatus())) {
 				// 费用计算
 				ParkPayRule ppr = parkPayRuleService.get("1");
-//				String ss[] = path.split("/");
-//				FtpUtil.downloadFtpFile(Constant.FTP_OUT, Constant.FTP_PORT, "/recordsImg/" + ss[4], Constant.LOCAL_DIR,
-//						ss[5]);
-//				String base64code = getImageStr(Constant.LOCAL_DIR + ss[5]);
-//				pendingOrder.setOutPic(base64code);
+				String ss[] = path.split("/");
+				FtpUtil.downloadFtpFile(Constant.FTP_OUT, Constant.FTP_PORT, "/recordsImg/" + ss[4], Constant.LOCAL_DIR,
+						ss[5]);
+				String base64code = getImageStr(Constant.LOCAL_DIR + ss[5]);
+				pendingOrder.setOutPic(base64code);
 				pendingOrder.setEndTime(new Date());
 				long times = pendingOrder.getEndTime().getTime() - pendingOrder.getStartTime().getTime();
 				pendingOrder.setCost(
@@ -300,6 +299,54 @@ public class ParkAPI {
 				parkOrderService.save(pendingOrder);
 				audioPlay("audio/账单已生成请微信付款.wav");
 				webSocketHandler.updateAndSendMsg(JsonMapper.toJsonString(pendingOrder));
+				// 模拟付款
+				try {
+					Thread.sleep(5000l);
+					// 查找待付款订单，如果没有，则不语音播报无付款订单，不需要付款
+					if (ParkAPI.pendingOrder != null) {
+						ParkOrder parkOrder = ParkAPI.pendingOrder;
+						ParkAPI.pendingOrder = null;
+						// 修改订单状态
+						parkOrder.setStatus("5");
+						parkOrder.setPayTime(new Date());
+						parkOrderService.save(parkOrder);
+						// 开门
+						CloseableHttpClient httpclient = HttpClients.createDefault();
+						HttpPost httpPost = new HttpPost(Constant.OUT_URL + "/device/openDoorControl");
+						httpPost.setHeader("Content-Type", "application/x-www-form-urlencoded");
+						List<NameValuePair> nvps = new ArrayList<NameValuePair>();
+						nvps.add(new BasicNameValuePair("pass", "88888888"));
+						httpPost.setEntity(new UrlEncodedFormEntity(nvps));
+						httpclient.execute(httpPost);
+						// 删除入口设备和出口设备上的注册信息，
+						HttpPost httpPost2 = new HttpPost(Constant.IN_URL + "/person/delete");
+						httpPost2.setHeader("Content-Type", "application/x-www-form-urlencoded");
+						List<NameValuePair> nvps2 = new ArrayList<NameValuePair>();
+						nvps2.add(new BasicNameValuePair("pass", "88888888"));
+						nvps2.add(new BasicNameValuePair("id", parkOrder.getPersonId()));
+						httpPost2.setEntity(new UrlEncodedFormEntity(nvps2));
+						httpclient.execute(httpPost2);
+
+						HttpPost httpPost1 = new HttpPost(Constant.OUT_URL + "/person/delete");
+						httpPost1.setHeader("Content-Type", "application/x-www-form-urlencoded");
+						List<NameValuePair> nvps1 = new ArrayList<NameValuePair>();
+						nvps1.add(new BasicNameValuePair("pass", "88888888"));
+						nvps1.add(new BasicNameValuePair("id", parkOrder.getPersonId()));
+						httpPost1.setEntity(new UrlEncodedFormEntity(nvps1));
+						httpclient.execute(httpPost1);
+						// 更新车架空闲车位数
+						ParkJiffyStand parkJiffyStand = new ParkJiffyStand();
+						parkJiffyStand.setFloor(parkOrder.getFloor());
+						parkJiffyStand = parkJiffyStandService.findList(parkJiffyStand).get(0);
+						int idleCount = Integer.valueOf(parkJiffyStand.getIdleCount()) + 1;
+						int inuseCount = Integer.valueOf(parkJiffyStand.getInuseCount()) - 1;
+						parkJiffyStand.setIdleCount(idleCount + "");
+						parkJiffyStand.setInuseCount(inuseCount + "");
+						parkJiffyStandService.save(parkJiffyStand);
+					}
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
 			} else {
 				System.out.println("---没有取车，请离开----");
 				audioPlay("audio/不取车请从侧门离开.wav");
@@ -350,7 +397,96 @@ public class ParkAPI {
 			e.printStackTrace();
 		}
 	}
-	
+
+	// 下存车停单，触发人脸注册
+	@RequestMapping(value = "/clean")
+	@ResponseBody
+	public String clean() {
+		try {
+			CloseableHttpClient httpclient = HttpClients.createDefault();
+			HttpPost httpPost2 = new HttpPost(Constant.IN_URL + "/person/delete");
+			httpPost2.setHeader("Content-Type", "application/x-www-form-urlencoded");
+			List<NameValuePair> nvps2 = new ArrayList<NameValuePair>();
+			nvps2.add(new BasicNameValuePair("pass", "88888888"));
+			nvps2.add(new BasicNameValuePair("id", "-1"));
+			httpPost2.setEntity(new UrlEncodedFormEntity(nvps2));
+			httpclient.execute(httpPost2);
+
+			HttpPost httpPost1 = new HttpPost(Constant.OUT_URL + "/person/delete");
+			httpPost1.setHeader("Content-Type", "application/x-www-form-urlencoded");
+			List<NameValuePair> nvps1 = new ArrayList<NameValuePair>();
+			nvps1.add(new BasicNameValuePair("pass", "88888888"));
+			nvps1.add(new BasicNameValuePair("id", "-1"));
+			httpPost1.setEntity(new UrlEncodedFormEntity(nvps1));
+			httpclient.execute(httpPost1);
+			return Constant.SUCCESS_RESULT;
+		} catch (Exception e) {
+			e.printStackTrace();
+			return Constant.ERROR_RESULT;
+		}
+
+	}
+
+	// 入口开门
+	@RequestMapping(value = "/in")
+	@ResponseBody
+	public String in() {
+		try {
+			// 开门
+			CloseableHttpClient httpclient = HttpClients.createDefault();
+			HttpPost httpPost = new HttpPost(Constant.IN_URL + "/device/openDoorControl");
+			httpPost.setHeader("Content-Type", "application/x-www-form-urlencoded");
+			List<NameValuePair> nvps = new ArrayList<NameValuePair>();
+			nvps.add(new BasicNameValuePair("pass", "88888888"));
+			httpPost.setEntity(new UrlEncodedFormEntity(nvps));
+			httpclient.execute(httpPost);
+			return Constant.SUCCESS_RESULT;
+		} catch (Exception e) {
+			e.printStackTrace();
+			return Constant.ERROR_RESULT;
+		}
+	}
+
+	// 出口开门
+	@RequestMapping(value = "/out")
+	@ResponseBody
+	public String out() {
+		try {
+			// 开门
+			CloseableHttpClient httpclient = HttpClients.createDefault();
+			HttpPost httpPost = new HttpPost(Constant.OUT_URL + "/device/openDoorControl");
+			httpPost.setHeader("Content-Type", "application/x-www-form-urlencoded");
+			List<NameValuePair> nvps = new ArrayList<NameValuePair>();
+			nvps.add(new BasicNameValuePair("pass", "88888888"));
+			httpPost.setEntity(new UrlEncodedFormEntity(nvps));
+			httpclient.execute(httpPost);
+			return Constant.SUCCESS_RESULT;
+		} catch (Exception e) {
+			e.printStackTrace();
+			return Constant.ERROR_RESULT;
+		}
+	}
+
+	// 出口开门
+	@RequestMapping(value = "/orderClean")
+	@ResponseBody
+	public String orderClean() {
+		try {
+			// 开门
+			CloseableHttpClient httpclient = HttpClients.createDefault();
+			HttpPost httpPost = new HttpPost(Constant.OUT_URL + "/device/openDoorControl");
+			httpPost.setHeader("Content-Type", "application/x-www-form-urlencoded");
+			List<NameValuePair> nvps = new ArrayList<NameValuePair>();
+			nvps.add(new BasicNameValuePair("pass", "88888888"));
+			httpPost.setEntity(new UrlEncodedFormEntity(nvps));
+			httpclient.execute(httpPost);
+			return Constant.SUCCESS_RESULT;
+		} catch (Exception e) {
+			e.printStackTrace();
+			return Constant.ERROR_RESULT;
+		}
+	}
+
 	public static void main(String[] args) {
 		audioPlay("audio/他人在存取车.wav");
 	}
