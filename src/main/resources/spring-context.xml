@@ -140,4 +140,7 @@
 	<bean id="nettyServer"
 		class="com.reache.jeemanage.modules.park.component.NettyServer"
 		init-method="init" lazy-init="false"></bean>
+	<!-- <bean id="serialHandler"
+		class="com.reache.jeemanage.modules.park.comm.SerialHandler"
+		init-method="init" lazy-init="false"></bean> -->
 </beans>

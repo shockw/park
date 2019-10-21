@@ -43,6 +43,7 @@ import com.reache.jeemanage.modules.park.entity.ParkPayRule;
 import com.reache.jeemanage.modules.park.service.ParkJiffyStandService;
 import com.reache.jeemanage.modules.park.service.ParkOrderService;
 import com.reache.jeemanage.modules.park.service.ParkPayRuleService;
+import com.reache.jeemanage.modules.sys.entity.User;
 
 import sun.misc.BASE64Encoder;
 
@@ -85,7 +86,7 @@ public class ParkAPI {
 			ParkJiffyStand pjs = parkJiffyStandService.occupy();
 			// 如果占用车位成功，则开始人脸注册
 			if (pjs != null) {
-				String personId = IdGen.uuid();
+				String personId = IdGen.timdId8();
 				// 人员注册,需要注册两次
 				CloseableHttpClient httpclient = HttpClients.createDefault();
 				try {
@@ -117,6 +118,10 @@ public class ParkAPI {
 					httpclient.execute(httpPost1);
 					// 形成订单
 					ParkOrder po = new ParkOrder();
+					po.setCreateBy(new User("1"));
+					po.setUpdateBy(new User("1"));
+					po.setCreateDate(new Date());
+					po.setUpdateDate(new Date());
 					po.setFloor(pjs.getFloor());
 					po.setPersonId(personId);
 					po.setJiffyStand(pjs.getJiffyStand());
@@ -183,9 +188,9 @@ public class ParkAPI {
 			httpPost1.setEntity(new UrlEncodedFormEntity(nvps1));
 			httpclient.execute(httpPost1);
 			// 等待车架落地
-			CountDownLatch countDownLatch = ParkJiffyStandOperation.latchs.get(personId.substring(0,8));
+			CountDownLatch countDownLatch = ParkJiffyStandOperation.latchs.get(personId);
 			boolean b = countDownLatch.await(600, TimeUnit.SECONDS);
-			ParkJiffyStandOperation.latchs.remove(personId.substring(0,8));
+			ParkJiffyStandOperation.latchs.remove(personId);
 			// 如果正常落架
 			if (b == true) {
 				// 开门
@@ -233,9 +238,9 @@ public class ParkAPI {
 				ParkJiffyStandOperation.operation("out", personId, Integer.parseInt(parkOrder.getFloor()));
 				try {
 					// 等待车架落地
-					CountDownLatch countDownLatch = ParkJiffyStandOperation.latchs.get(personId.substring(0,8));
+					CountDownLatch countDownLatch = ParkJiffyStandOperation.latchs.get(personId);
 					boolean b = countDownLatch.await(600, TimeUnit.SECONDS);
-					ParkJiffyStandOperation.latchs.remove(personId.substring(0,8));
+					ParkJiffyStandOperation.latchs.remove(personId);
 					if (b == true) {
 						// 开门
 						CloseableHttpClient httpclient = HttpClients.createDefault();
@@ -398,7 +403,7 @@ public class ParkAPI {
 		}
 	}
 
-	// 下存车停单，触发人脸注册
+	//门禁数据清理
 	@RequestMapping(value = "/clean")
 	@ResponseBody
 	public String clean() {

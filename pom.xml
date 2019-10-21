@@ -58,15 +58,9 @@
 
 	</properties>
 
-	<!-- 设定主仓库，按设定顺序进行查找。 -->
 	<repositories>
 
-		<!-- 如有Nexus私服, 取消注释并指向正确的服务器地址. <repository> <id>nexus-repos</id> <name>Team 
-			Nexus Repository</name> <url>http://60.174.249.206:7000/nexus/content/groups/public/</url> 
-			</repository> -->
-
-		<!--<repository> <id>oschina-repos</id> <name>Oschina Releases</name> <url>http://maven.oschina.net/content/groups/public</url> 
-			</repository> -->
+		<!-- 设定主仓库，按设定顺序进行查找。 -->
 
 		<repository>
 			<id>java-repos</id>
@@ -103,30 +97,8 @@
 			<name>Activiti Repository 2</name>
 			<url>https://app.camunda.com/nexus/content/groups/public</url>
 		</repository>
-
-		<repository>
-			<id>thinkgem-repos</id>
-			<name>ThinkGem Repository</name>
-			<url>http://git.oschina.net/thinkgem/repos/raw/master</url>
-		</repository>
-
-		<repository>
-			<id>thinkgem-repos2</id>
-			<name>ThinkGem Repository 2</name>
-			<url>https://raw.github.com/thinkgem/repository/master</url>
-		</repository>
 	</repositories>
 
-	<!-- 设定插件仓库 -->
-	<pluginRepositories>
-
-		<pluginRepository>
-			<id>jeesite-repos</id>
-			<name>Jeesite Repository</name>
-			<url>http://maven.jeesite.com/nexus/content/groups/public</url>
-		</pluginRepository>
-
-	</pluginRepositories>
 
 	<!-- 依赖项定义 -->
 	<dependencies>
@@ -247,12 +219,12 @@
 			<version>${mysql.driver.version}</version>
 			<scope>runtime</scope>
 		</dependency>
-		<dependency>
+		<!-- <dependency>
 			<groupId>com.oracle</groupId>
 			<artifactId>ojdbc14</artifactId>
 			<version>${oracle.driver.version}</version>
 			<scope>runtime</scope>
-		</dependency>
+		</dependency> -->
 		<dependency>
 			<groupId>net.sourceforge.jtds</groupId>
 			<artifactId>jtds</artifactId>
@@ -643,6 +615,14 @@
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-messaging</artifactId>
 			<version>${spring.version}</version>
+		</dependency>
+		<!-- 串口jar -->
+		<dependency>
+			<groupId>gnu.io</groupId>
+			<artifactId>com-lib</artifactId>
+			<version>2.2</version>
+			<scope>system</scope>
+			<systemPath>${project.basedir}/src/main/webapp/WEB-INF/lib/RXTXcomm.jar</systemPath>
 		</dependency>
 	</dependencies>
 

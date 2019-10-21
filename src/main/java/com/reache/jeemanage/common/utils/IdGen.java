@@ -2,6 +2,8 @@ package com.reache.jeemanage.common.utils;
 
 import java.io.Serializable;
 import java.security.SecureRandom;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.UUID;
 
 import org.activiti.engine.impl.cfg.IdGenerator;
@@ -20,6 +22,13 @@ import org.springframework.stereotype.Service;
 public class IdGen implements IdGenerator, SessionIdGenerator {
 
 	private static SecureRandom random = new SecureRandom();
+	
+	public static String timdId8() {
+		Date date = new Date();
+		SimpleDateFormat sdf = new SimpleDateFormat("MMddHHmm");
+		String timdId8 = sdf.format(date);
+		return timdId8;
+	}
 	
 	/**
 	 * 封装JDK自带的UUID, 通过Random数字生成, 中间无-分割.
@@ -58,12 +67,13 @@ public class IdGen implements IdGenerator, SessionIdGenerator {
 	}
 	
 	public static void main(String[] args) {
-		System.out.println(IdGen.uuid());
-		System.out.println(IdGen.uuid().length());
-		System.out.println(new IdGen().getNextId());
-		for (int i=0; i<1000; i++){
-			System.out.println(IdGen.randomLong() + "  " + IdGen.randomBase62(5));
-		}
+		System.out.println(IdGen.timdId8());
+//		System.out.println(IdGen.uuid());
+//		System.out.println(IdGen.uuid().length());
+//		System.out.println(new IdGen().getNextId());
+//		for (int i=0; i<1000; i++){
+//			System.out.println(IdGen.randomLong() + "  " + IdGen.randomBase62(5));
+//		}
 	}
 
 }

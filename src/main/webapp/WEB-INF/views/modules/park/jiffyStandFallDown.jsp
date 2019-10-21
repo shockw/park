@@ -34,7 +34,6 @@
 </head>
 <body>
 	<sys:message content="${message}" />
-
 	<form:form id="inputForm" modelAttribute="parkJiffyStand"
 		action="${ctx}/park/doorAccess/jiffyStandFallDown" method="post"
 		class="form-horizontal">
@@ -53,6 +52,7 @@
 			<input id="btnSubmit" class="btn btn-primary" type="submit"
 				value="操作车架" />&nbsp;
 		</div>
+	<div>${jiffyStandInfo }</div>
 	</form:form>
 
 

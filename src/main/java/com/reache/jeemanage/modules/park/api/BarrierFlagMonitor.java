@@ -23,7 +23,7 @@ public class BarrierFlagMonitor implements Runnable{
 	public void run() {
 		//每5秒向车架查询一次障碍物，10分钟超时
 		for(int i =0;i<120;i++) {
-			ParkJiffyStandOperation.barrierQuery(UUID.randomUUID().toString());
+			ParkJiffyStandOperation.barrierQuery(UUID.randomUUID().toString().substring(0,8));
 			try {
 				Thread.sleep(5000l);
 			} catch (InterruptedException e) {

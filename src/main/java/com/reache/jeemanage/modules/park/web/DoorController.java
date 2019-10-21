@@ -133,6 +133,7 @@ public class DoorController extends BaseController {
 	
 	@RequestMapping(value = { "jiffyStandOper"})
 	public String jiffyStandOper(ParkJiffyStand parkJiffyStand,HttpServletRequest request, HttpServletResponse response, Model model) {
+		model.addAttribute("jiffyStandInfo", "车架连接信息：" + NettyConfig.group);
 		return "modules/park/jiffyStandFallDown";
 	}
 	
