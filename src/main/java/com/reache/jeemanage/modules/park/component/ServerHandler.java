@@ -1,4 +1,5 @@
 package com.reache.jeemanage.modules.park.component;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -6,7 +7,11 @@ import java.util.concurrent.CountDownLatch;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.reache.jeemanage.common.mapper.JsonMapper;
+import com.reache.jeemanage.common.utils.SpringContextHolder;
 import com.reache.jeemanage.modules.park.api.ParkAPI;
+import com.reache.jeemanage.modules.park.entity.ParkIntfLog;
+import com.reache.jeemanage.modules.park.service.ParkIntfLogService;
+import com.reache.jeemanage.modules.sys.entity.User;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -76,6 +81,7 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
         String body = new String(req, "UTF-8");
         result = body;
         System.out.println("接收客户端数据:" + body);
+      
         //出入库并行锁释放
         if(body.contains("200")&&body.contains("feedback")) {
         	ObjectMapper objectMapper = new ObjectMapper();
@@ -83,12 +89,45 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
         	String transId = map.get("transId");
         	CountDownLatch latch =ParkJiffyStandOperation.latchs.get(transId);
         	latch.countDown();
+        	//记录接口日志
+    		ParkIntfLog parkIntfLog = new ParkIntfLog();
+    		parkIntfLog.setCreateDate(new Date());
+    		parkIntfLog.setCreateBy(new User("ab4636a2e21f408ebf7bb213dc24d206"));
+    		parkIntfLog.setUpdateBy(new User("ab4636a2e21f408ebf7bb213dc24d206"));
+    		parkIntfLog.setUpdateDate(new Date());
+    		parkIntfLog.setReqTime(new Date());
+    		parkIntfLog.setIntfName("操作车架反馈");
+    		parkIntfLog.setCallMethod("2");
+    		parkIntfLog.setCallee("软件");
+    		parkIntfLog.setCaller("车架");
+    		parkIntfLog.setOrderId(transId);
+    		parkIntfLog.setCallStatus("0");
+    		parkIntfLog.setRspMsg(body);
+    		ParkIntfLogService parkIntfLogService = SpringContextHolder.getBean("parkIntfLogService");
+    		parkIntfLogService.save(parkIntfLog);
         	System.out.println("已经成功接受到车架操作完毕信息！");
         }else if(body.contains("barrier")) {
         	ObjectMapper objectMapper = new ObjectMapper();
         	Map<String,String> map = objectMapper.readValue(body,HashMap.class);
         	String state = map.get("state");
+        	String transId1 = map.get("transId");
         	ParkAPI.barrierFlags.add(state);
+        	//记录接口日志
+    		ParkIntfLog parkIntfLog = new ParkIntfLog();
+    		parkIntfLog.setCreateDate(new Date());
+    		parkIntfLog.setCreateBy(new User("ab4636a2e21f408ebf7bb213dc24d206"));
+    		parkIntfLog.setUpdateBy(new User("ab4636a2e21f408ebf7bb213dc24d206"));
+    		parkIntfLog.setUpdateDate(new Date());
+    		parkIntfLog.setReqTime(new Date());
+    		parkIntfLog.setIntfName("车架下有无人的信息反馈");
+    		parkIntfLog.setCallMethod("2");
+    		parkIntfLog.setCallee("软件");
+    		parkIntfLog.setCaller("车架");
+    		parkIntfLog.setOrderId(transId1);
+    		parkIntfLog.setCallStatus("0");
+    		parkIntfLog.setRspMsg(body);
+    		ParkIntfLogService parkIntfLogService = SpringContextHolder.getBean("parkIntfLogService");
+    		parkIntfLogService.save(parkIntfLog);
         }
 //        ByteBuf pingMessage = Unpooled.buffer();
 //        pingMessage.writeBytes(req);

@@ -1,12 +1,18 @@
 package com.reache.jeemanage.modules.park.comm;
 
 import java.net.URI;
+import java.util.Date;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
+
+import com.reache.jeemanage.common.utils.SpringContextHolder;
+import com.reache.jeemanage.modules.park.entity.ParkIntfLog;
+import com.reache.jeemanage.modules.park.service.ParkIntfLogService;
+import com.reache.jeemanage.modules.sys.entity.User;
 
 import gnu.io.SerialPort;
 import gnu.io.SerialPortEvent;
@@ -22,10 +28,26 @@ public class SerialHandler {
 
 				@Override
 				public void serialEvent(SerialPortEvent event) {
+					System.out.println("开关触发");
 					 //数据通知
 	                if (event.getEventType() == SerialPortEvent.DATA_AVAILABLE) {
 	                    byte[] bytes = SerialPortUtil.readData(serialPort);
-	                    System.out.println("开关触发：从串口收到数据触发存车申请！数据长度："+bytes.length);
+	                    System.out.println("从串口收到数据触发存车申请！数据长度："+bytes.length);
+	                    ParkIntfLog parkIntfLog = new ParkIntfLog();
+	            		parkIntfLog.setCreateDate(new Date());
+	            		parkIntfLog.setCreateBy(new User("ab4636a2e21f408ebf7bb213dc24d206"));
+	            		parkIntfLog.setUpdateBy(new User("ab4636a2e21f408ebf7bb213dc24d206"));
+	            		parkIntfLog.setUpdateDate(new Date());
+	            		parkIntfLog.setReqTime(new Date());
+	            		parkIntfLog.setIntfName("接受串口信息");
+	            		parkIntfLog.setCallMethod("2");
+	            		parkIntfLog.setCallee("软件");
+	            		parkIntfLog.setCaller("串口");
+	            		parkIntfLog.setOrderId("串口接受信息");
+	            		parkIntfLog.setCallStatus("0");
+	            		parkIntfLog.setRspMsg(bytes.length+"");
+	            		ParkIntfLogService parkIntfLogService = SpringContextHolder.getBean("parkIntfLogService");
+	            		parkIntfLogService.save(parkIntfLog);
 	                    try {
 							CloseableHttpClient httpclient = HttpClients.createDefault();
 							HttpGet httpGet = new HttpGet();

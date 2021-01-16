@@ -32,7 +32,7 @@ public class ParkJiffyStandOperation {
 	 */
 	public static void operation(String type, String userId, int floor) {
 		synchronized (lock) {
-			int floor1 = floor-1;
+			int floor1 = floor;
 			String req = "{\"cmd\":\"req\",\"type\":\"" + type + "\",\"transId\":\"" + userId + "\",\"userId\":\""
 					+ userId + "\",\"floor\":" + floor1 + "}";
 			System.out.println("车架连接信息：" + NettyConfig.group);
@@ -81,6 +81,22 @@ public class ParkJiffyStandOperation {
 				Channel channel = iterator.next();
 				channel.writeAndFlush(pingMessage);
 				System.out.println("向车架发送障碍物查义命令成功！");
+				//记录接口日志
+				ParkIntfLog parkIntfLog = new ParkIntfLog();
+				parkIntfLog.setCreateDate(new Date());
+				parkIntfLog.setCreateBy(new User("ab4636a2e21f408ebf7bb213dc24d206"));
+				parkIntfLog.setUpdateBy(new User("ab4636a2e21f408ebf7bb213dc24d206"));
+				parkIntfLog.setUpdateDate(new Date());
+				parkIntfLog.setReqTime(new Date());
+				parkIntfLog.setIntfName("车架障碍物查询");
+				parkIntfLog.setCallMethod("2");
+				parkIntfLog.setCallee("车架");
+				parkIntfLog.setCaller("软件");
+				parkIntfLog.setCallStatus("0");
+				parkIntfLog.setOrderId(transId);
+				parkIntfLog.setReqMsg(req);
+				ParkIntfLogService parkIntfLogService = SpringContextHolder.getBean("parkIntfLogService");
+				parkIntfLogService.save(parkIntfLog);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}

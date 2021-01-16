@@ -19,9 +19,9 @@
 			$("#dataClean").click(function(){
 				$.get("${ctx}/park/api/clean",function(data,status){
 					if(data.indexOf("true") > 0 ){
-						alert("门禁数据清理完毕！" );
+						alert("系统复位完毕(门禁数据清理、令牌复位)，可重新测试！" );
 					}else{
-						alert("门禁数据清理失败！" );
+						alert("数据清理失败！" );
 					}
 				});
 			});
@@ -70,7 +70,7 @@
 		<%-- <shiro:hasPermission name="park:parkOrder:edit"><li><a href="${ctx}/park/parkOrder/form">停车订单添加</a></li></shiro:hasPermission> --%>
 	</ul>
 	<button id="parkButton" style="width:100px;height:50px;font-size:20px;color:red" >我要停车</button>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-	<button id="dataClean" style="width:120px;height:50px;font-size:16px;color:red">门禁数据清理</button>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+	<button id="dataClean" style="width:120px;height:50px;font-size:20px;color:red">一键复位</button>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 	<button id="inAccess" style="width:100px;height:50px;font-size:20px;color:red">入口开门</button>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 	<button id="outAccess" style="width:100px;height:50px;font-size:20px;color:red">出口开门</button>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 <!-- 	<button id="orderClean" style="width:100px;height:50px;font-size:20px;color:red">在途订单清理</button>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;

@@ -46,6 +46,7 @@ import com.reache.jeemanage.modules.park.service.ParkPayRuleService;
 import com.reache.jeemanage.modules.sys.entity.User;
 
 import sun.misc.BASE64Encoder;
+import com.reache.jeemanage.modules.park.TokenManager;
 
 @Controller
 @RequestMapping(value = "${adminPath}/park/api")
@@ -188,6 +189,7 @@ public class ParkAPI {
 			httpPost1.setEntity(new UrlEncodedFormEntity(nvps1));
 			httpclient.execute(httpPost1);
 			// 等待车架落地
+			Thread.sleep(5000l);
 			CountDownLatch countDownLatch = ParkJiffyStandOperation.latchs.get(personId);
 			boolean b = countDownLatch.await(600, TimeUnit.SECONDS);
 			ParkJiffyStandOperation.latchs.remove(personId);
@@ -200,6 +202,7 @@ public class ParkAPI {
 				nvps.add(new BasicNameValuePair("pass", "88888888"));
 				httpPost.setEntity(new UrlEncodedFormEntity(nvps));
 				httpclient.execute(httpPost);
+				System.out.println("-----门禁开门-----");
 				// 更新订单状态为存车中，将拍照图片上传至数据库保存
 				parkOrder.setPath(newImgPath);
 				parkOrder.setInPic(base64code);
@@ -403,7 +406,7 @@ public class ParkAPI {
 		}
 	}
 
-	//门禁数据清理
+	//数据清理，包括门禁里面信息删除和令牌释放
 	@RequestMapping(value = "/clean")
 	@ResponseBody
 	public String clean() {
@@ -424,6 +427,9 @@ public class ParkAPI {
 			nvps1.add(new BasicNameValuePair("id", "-1"));
 			httpPost1.setEntity(new UrlEncodedFormEntity(nvps1));
 			httpclient.execute(httpPost1);
+			
+			//令牌释放
+			TokenManager.release();
 			return Constant.SUCCESS_RESULT;
 		} catch (Exception e) {
 			e.printStackTrace();
